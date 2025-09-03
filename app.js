@@ -1717,7 +1717,8 @@ class ATBDashboard {
         
         // Enable buttons
         document.getElementById('create-bot').disabled = false;
-        document.getElementById('view-market').disabled = false;
+        const viewMarketBtn = document.getElementById('view-market');
+        if (viewMarketBtn) viewMarketBtn.disabled = false;
         
         this.addAlert('info', 'Market Selected', `Selected ${name} (${symbol})`);
     }
@@ -1756,8 +1757,10 @@ class ATBDashboard {
     updateChartForMarket(symbol) {
         if (!this.chart) return;
         
+        // Normalize symbol to match backend cache keys
+        const normalized = symbol.replace('-USD', '').replace('=F', '');
         // Get market data for the symbol
-        const marketData = this.marketData[symbol] || this.generateMockMarketData(symbol);
+        const marketData = this.marketData[symbol] || this.marketData[normalized] || this.generateMockMarketData(symbol);
         
         if (marketData && marketData.length > 0) {
             const labels = marketData.map(d => new Date(d.time).toLocaleTimeString());
@@ -1843,7 +1846,8 @@ class ATBDashboard {
             item.classList.remove('selected');
         });
         document.getElementById('create-bot').disabled = true;
-        document.getElementById('view-market').disabled = true;
+        const viewMarketBtn2 = document.getElementById('view-market');
+        if (viewMarketBtn2) viewMarketBtn2.disabled = true;
         this.selectedMarket = null;
         
         this.addAlert('success', 'Bot Created', `Created ${botName} for ${this.selectedMarket.name}`);

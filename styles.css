@@ -83,6 +83,7 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     transition: all 0.3s ease;
+    overflow-x: hidden;
 }
 
 /* Header Styles */
@@ -314,6 +315,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
+    min-width: 0;
 }
 
 .section-header {
@@ -355,12 +357,13 @@ body {
     height: 300px;
     width: 100%;
     flex: 1;
-    overflow: hidden;
+    overflow: auto;
 }
 
 #market-chart {
     width: 100% !important;
     height: 100% !important;
+    display: block;
 }
 
 .chart-loading {
@@ -529,6 +532,7 @@ body {
 .alerts-container {
     max-height: 300px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .alert-item {
