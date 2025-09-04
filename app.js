@@ -17,6 +17,13 @@ class ATBDashboard {
         this.brokerConnected = false;
         this.accountBalance = 100000;
         this.availableFunds = 95000;
+        this.accountMain = 100000;
+        this.botAllocations = {};
+        this.bankAssets = [
+            { id: 'bank_1', name: 'Lamborghini', ref: 'LAM-001', qty: 1, value: 250000 },
+            { id: 'bank_2', name: 'A Seat in the Kop', ref: 'KOP-1892', qty: 1, value: 50000 },
+            { id: 'bank_3', name: 'Crypto-currency', ref: 'CRY-001', qty: 3, value: 15000 }
+        ];
         this.currentTimeframe = '1h';
         this.graphColor = '#ffd700';
         this.investments = [];
@@ -49,6 +56,7 @@ class ATBDashboard {
             totalTrades: 0,
             winningTrades: 0
         };
+        this.botTrades = {}; // { botId: [{type:'BUY'|'SELL', index, price, timestamp}] }
         
         this.init();
     }
@@ -188,6 +196,13 @@ class ATBDashboard {
             this.toggleSimulationMode();
         });
         
+        const accBtn = document.getElementById('digital-account');
+        if (accBtn) accBtn.addEventListener('click', () => this.showAccountModal());
+        const bankBtn = document.getElementById('digital-bank');
+        if (bankBtn) bankBtn.addEventListener('click', () => this.showBankModal());
+        const currencyBtn = document.getElementById('digital-currency');
+        if (currencyBtn) currencyBtn.addEventListener('click', () => this.showCurrencyModal());
+        
         // Modal controls
         document.querySelectorAll('.modal-close').forEach(closeBtn => {
             closeBtn.addEventListener('click', () => {
@@ -218,6 +233,15 @@ class ATBDashboard {
             }
         });
         
+        const botMgmtModal = document.getElementById('bot-management-modal');
+        if (botMgmtModal) {
+            botMgmtModal.addEventListener('click', (e) => {
+                if (e.target.id === 'bot-management-modal') {
+                    botMgmtModal.classList.remove('show');
+                }
+            });
+        }
+        
         // Theme customization
         document.getElementById('apply-theme').addEventListener('click', () => {
             this.applyCustomTheme();
@@ -227,12 +251,31 @@ class ATBDashboard {
             this.resetTheme();
         });
         
+        const createNewBotBtn = document.getElementById('create-new-bot');
+        if (createNewBotBtn) {
+            createNewBotBtn.addEventListener('click', () => this.createOrUpdateBotFromModal(true));
+        }
+        const modalStart = document.getElementById('modal-start-bot');
+        if (modalStart) modalStart.addEventListener('click', () => this.startBot());
+        const modalPause = document.getElementById('modal-pause-bot');
+        if (modalPause) modalPause.addEventListener('click', () => this.pauseBot());
+        const modalReset = document.getElementById('modal-reset-bot');
+        if (modalReset) modalReset.addEventListener('click', () => this.resetBot());
+        
         // Preset theme buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.applyPresetTheme(e.target.dataset.theme);
             });
         });
+        
+        // Font family selector
+        const fontSelector = document.getElementById('font-family-selector');
+        if (fontSelector) {
+            fontSelector.addEventListener('change', (e) => {
+                this.applyFontFamily(e.target.value);
+            });
+        }
         
         // Live trading mode
         document.querySelectorAll('input[name="trading-mode"]').forEach(radio => {
@@ -269,6 +312,41 @@ class ATBDashboard {
         
         document.getElementById('export-review-data').addEventListener('click', () => {
             this.exportReviewData();
+        });
+
+        // Account modal handlers
+        const accountModal = document.getElementById('account-modal');
+        if (accountModal) {
+            accountModal.addEventListener('click', (e) => {
+                if (e.target.id === 'account-modal') accountModal.classList.remove('show');
+            });
+            const depositBtn = document.getElementById('deposit-funds');
+            if (depositBtn) depositBtn.addEventListener('click', () => this.depositFunds());
+            const transferBtn = document.getElementById('transfer-to-bot');
+            if (transferBtn) transferBtn.addEventListener('click', () => this.transferToBot());
+            const withdrawBtn = document.getElementById('withdraw-from-bot');
+            if (withdrawBtn) withdrawBtn.addEventListener('click', () => this.withdrawFromBot());
+        }
+        const bankModal = document.getElementById('bank-modal');
+        if (bankModal) {
+            bankModal.addEventListener('click', (e) => {
+                if (e.target.id === 'bank-modal') bankModal.classList.remove('show');
+            });
+            const addBtn = document.getElementById('bank-add-asset');
+            const updBtn = document.getElementById('bank-update-asset');
+            const delBtn = document.getElementById('bank-delete-asset');
+            const csvBtn = document.getElementById('bank-export-csv');
+            if (addBtn) addBtn.addEventListener('click', () => this.addBankAsset());
+            if (updBtn) updBtn.addEventListener('click', () => this.updateBankAsset());
+            if (delBtn) delBtn.addEventListener('click', () => this.deleteBankAsset());
+            if (csvBtn) csvBtn.addEventListener('click', () => this.exportBankCSV());
+        }
+
+        // Global ESC to close any open modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+            }
         });
         
         // Market review controls
@@ -534,11 +612,30 @@ class ATBDashboard {
             }
         }
         
+        // Merge stored bot trades as markers
+        const stored = this.botTrades[this.currentBot] || [];
+        const storedBuys = stored.filter(t => t.type === 'BUY').map(t => ({ x: t.index ?? prices.length - 1, y: t.price }));
+        const storedSells = stored.filter(t => t.type === 'SELL').map(t => ({ x: t.index ?? prices.length - 1, y: t.price }));
         this.chart.data.labels = labels;
         this.chart.data.datasets[0].data = prices;
-        this.chart.data.datasets[1].data = buySignals;
-        this.chart.data.datasets[2].data = sellSignals;
+        this.chart.data.datasets[1].data = [...buySignals, ...storedBuys];
+        this.chart.data.datasets[2].data = [...sellSignals, ...storedSells];
         
+        this.chart.update('none');
+    }
+
+    annotateChartEvent(eventType, asset) {
+        if (!this.chart) return;
+        const lastIdx = this.chart.data.labels.length - 1;
+        if (lastIdx < 0) return;
+        const price = this.chart.data.datasets[0].data[lastIdx];
+        if (price == null) return;
+        const point = { x: lastIdx, y: price };
+        if (eventType === 'START') {
+            this.chart.data.datasets[1].data.push(point);
+        } else if (eventType === 'PAUSE') {
+            this.chart.data.datasets[2].data.push(point);
+        }
         this.chart.update('none');
     }
     
@@ -592,6 +689,12 @@ class ATBDashboard {
         
         // Update chart
         this.updateChart();
+        // Update bot stats badge in graph header
+        const allocation = this.botAllocations[botId] || 0;
+        const pnlPercent = (Math.random() - 0.5) * 10; // placeholder; replace with real calc
+        const arrow = pnlPercent > 0 ? '▲' : (pnlPercent < 0 ? '▼' : '•');
+        const statsEl = document.getElementById('bot-stats-display');
+        if (statsEl) statsEl.innerHTML = `${bot.name}: $${allocation.toFixed(2)} <span style="color:${pnlPercent>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pnlPercent).toFixed(1)}%</span>`;
         
         this.addAlert('info', 'Bot Selected', `Selected ${bot.name} for ${bot.asset}`);
     }
@@ -610,6 +713,8 @@ class ATBDashboard {
         
         // Simulate bot activity
         this.simulateBotActivity();
+        this.annotateChartEvent('START', bot.asset);
+        this.renderActiveBots();
     }
     
     pauseBot() {
@@ -623,6 +728,8 @@ class ATBDashboard {
         
         this.updateBotStatus();
         this.addAlert('warning', 'Bot Paused', `${bot.name} has been paused`);
+        this.annotateChartEvent('PAUSE', bot.asset);
+        this.renderActiveBots();
     }
     
     resetBot() {
@@ -809,6 +916,11 @@ class ATBDashboard {
             
             this.addAlert('info', 'Trade Executed', 
                 `${bot.name} ${tradeType} ${quantity} ${asset} @ $${currentPrice.toFixed(2)}`);
+            // Store trade for bot
+            if (!this.botTrades[this.currentBot]) this.botTrades[this.currentBot] = [];
+            this.botTrades[this.currentBot].push({ type: tradeType, index: (this.chart?.data?.labels?.length ?? 1) - 1, price: currentPrice, timestamp: Date.now() });
+            // Update chart markers immediately
+            this.updateChart();
         }
         
         // Continue simulation if bot is still active
@@ -836,11 +948,289 @@ class ATBDashboard {
     updateUI() {
         this.updateBotStatus();
         this.updateLastUpdateTime();
+        this.renderActiveBots();
+        this.updateAccountUI();
+        this.renderBankAssets();
         
         // Update last update time every second
         setInterval(() => {
             this.updateLastUpdateTime();
         }, 1000);
+    }
+
+    showBankModal() {
+        const modal = document.getElementById('bank-modal');
+        if (!modal) return;
+        this.renderBankAssets();
+        this.refreshBankMarketValues();
+        modal.classList.add('show');
+    }
+
+    renderBankAssets() {
+        const list = document.getElementById('bank-assets-list');
+        if (!list) return;
+        list.innerHTML = '';
+        this.bankAssets.forEach(asset => {
+            const row = document.createElement('div');
+            row.className = 'stat-item';
+            const qr = this.generateQRCodeData(`ref:${asset.ref}`);
+            row.innerHTML = `
+                <div class="text-left">
+                    <div class="stat-label">${asset.name}</div>
+                    <div class="stat-label">Ref: ${asset.ref}</div>
+                    <div class="stat-label">Qty: <span data-bank-qty="${asset.id}">${asset.qty}</span></div>
+                </div>
+                <div class="text-right">
+                    <div class="stat-value" data-bank-value="${asset.id}">$${(asset.value).toFixed(2)}</div>
+                    <div class="stat-label" data-bank-total="${asset.id}">$${(asset.value * asset.qty).toFixed(2)}</div>
+                    <img alt="qr" src="${qr}" style="width:64px;height:64px;border:1px solid var(--border-primary);border-radius:4px;background:white;" />
+                </div>
+            `;
+            row.addEventListener('click', () => this.loadBankAssetForm(asset));
+            list.appendChild(row);
+        });
+    }
+
+    async refreshBankMarketValues() {
+        // For crypto or market-like assets, update current value via backend endpoints
+        for (const asset of this.bankAssets) {
+            const isMarket = /crypto|btc|eth|usd|stock|coin|token/i.test(asset.name + ' ' + asset.ref);
+            if (!isMarket) continue;
+            try {
+                // Try to infer a ticker from ref or name; fallback to BTC-USD for demo
+                const symbol = /BTC|BTC-USD/i.test(asset.name + ' ' + asset.ref) ? 'BTC-USD' : (/ETH/i.test(asset.name + ' ' + asset.ref) ? 'ETH-USD' : 'AAPL');
+                const resp = await fetch(`/api/market-data/${encodeURIComponent(symbol)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const latest = Array.isArray(data) && data.length ? data[data.length - 1] : null;
+                    if (latest && typeof latest.price === 'number') {
+                        asset.value = latest.price;
+                        const valEl = document.querySelector(`[data-bank-value="${asset.id}"]`);
+                        const qtyEl = document.querySelector(`[data-bank-qty="${asset.id}"]`);
+                        const totEl = document.querySelector(`[data-bank-total="${asset.id}"]`);
+                        if (valEl) valEl.textContent = `$${latest.price.toFixed(2)}`;
+                        const qty = qtyEl ? parseFloat(qtyEl.textContent) || asset.qty : asset.qty;
+                        if (totEl) totEl.textContent = `$${(latest.price * qty).toFixed(2)}`;
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+    }
+
+    async showCurrencyModal() {
+        const modal = document.getElementById('currency-modal');
+        if (!modal) return;
+        modal.classList.add('show');
+        await this.renderTopCryptos();
+    }
+
+    async renderTopCryptos() {
+        const container = document.getElementById('top-cryptos');
+        if (!container) return;
+        container.innerHTML = '';
+        const symbols = ['BTC-USD', 'ETH-USD', 'AAPL', 'MSFT', 'TSLA'];
+        for (const sym of symbols) {
+            try {
+                const resp = await fetch(`/api/market-data/${encodeURIComponent(sym)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const latest = Array.isArray(data) && data.length ? data[data.length - 1] : null;
+                    const price = latest ? latest.price : 0;
+                    const item = document.createElement('div');
+                    item.className = 'stat-item';
+                    item.innerHTML = `<span class="stat-label">${sym}</span><span class="stat-value">$${price.toFixed(2)}</span>`;
+                    container.appendChild(item);
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+    }
+
+    loadBankAssetForm(asset) {
+        document.getElementById('bank-asset-name').value = asset.name;
+        document.getElementById('bank-asset-ref').value = asset.ref;
+        document.getElementById('bank-asset-qty').value = asset.qty;
+        document.getElementById('bank-asset-value').value = asset.value;
+        this.currentBankAssetId = asset.id;
+    }
+
+    addBankAsset() {
+        const name = document.getElementById('bank-asset-name').value.trim();
+        const ref = document.getElementById('bank-asset-ref').value.trim();
+        const qty = parseInt(document.getElementById('bank-asset-qty').value) || 0;
+        const value = parseFloat(document.getElementById('bank-asset-value').value) || 0;
+        if (!name || !ref || qty <= 0 || value < 0) {
+            this.addAlert('warning', 'Invalid Asset', 'Please fill all asset fields');
+            return;
+        }
+        const id = `bank_${Date.now()}`;
+        this.bankAssets.push({ id, name, ref, qty, value });
+        this.renderBankAssets();
+        this.addAlert('success', 'Asset Added', `${name} added to bank`);
+    }
+
+    updateBankAsset() {
+        if (!this.currentBankAssetId) {
+            this.addAlert('warning', 'No Selection', 'Select an asset to update');
+            return;
+        }
+        const idx = this.bankAssets.findIndex(a => a.id === this.currentBankAssetId);
+        if (idx === -1) return;
+        const name = document.getElementById('bank-asset-name').value.trim();
+        const ref = document.getElementById('bank-asset-ref').value.trim();
+        const qty = parseInt(document.getElementById('bank-asset-qty').value) || 0;
+        const value = parseFloat(document.getElementById('bank-asset-value').value) || 0;
+        this.bankAssets[idx] = { id: this.currentBankAssetId, name, ref, qty, value };
+        this.renderBankAssets();
+        this.addAlert('success', 'Asset Updated', `${name} updated`);
+    }
+
+    deleteBankAsset() {
+        if (!this.currentBankAssetId) {
+            this.addAlert('warning', 'No Selection', 'Select an asset to delete');
+            return;
+        }
+        this.bankAssets = this.bankAssets.filter(a => a.id !== this.currentBankAssetId);
+        this.currentBankAssetId = null;
+        this.renderBankAssets();
+        this.addAlert('success', 'Asset Deleted', `Asset removed from bank`);
+    }
+
+    exportBankCSV() {
+        const headers = ['id', 'name', 'ref', 'qty', 'value'];
+        const rows = this.bankAssets.map(a => [a.id, a.name, a.ref, a.qty, a.value]);
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `digital_bank_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.addAlert('success', 'Bank Exported', 'Digital bank exported to CSV');
+    }
+
+    generateQRCodeData(text) {
+        // Simple placeholder QR using data URL with text; integrate real QR lib later
+        const canvas = document.createElement('canvas');
+        const size = 64;
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#000';
+        for (let i = 0; i < text.length; i++) {
+            const x = (i * 7) % size;
+            const y = Math.floor((i * 7) / size) * 7 % size;
+            if ((text.charCodeAt(i) + i) % 3 === 0) ctx.fillRect(x, y, 4, 4);
+        }
+        return canvas.toDataURL('image/png');
+    }
+
+    showAccountModal() {
+        const modal = document.getElementById('account-modal');
+        if (!modal) return;
+        this.populateAccountBotSelect();
+        this.updateAccountUI();
+        modal.classList.add('show');
+    }
+
+    populateAccountBotSelect() {
+        const sel = document.getElementById('transfer-bot');
+        if (!sel) return;
+        sel.innerHTML = '';
+        Object.entries(this.bots).forEach(([botId, bot]) => {
+            const opt = document.createElement('option');
+            opt.value = botId;
+            opt.textContent = `${bot.name} (${bot.asset})`;
+            sel.appendChild(opt);
+        });
+    }
+
+    updateAccountUI() {
+        const mainBal = document.getElementById('account-balance-main');
+        const avail = document.getElementById('available-funds-main');
+        if (mainBal) mainBal.textContent = `$${this.accountMain.toFixed(2)}`;
+        if (avail) avail.textContent = `$${this.availableFunds.toFixed(2)}`;
+        const list = document.getElementById('bot-allocations-list');
+        if (list) {
+            list.innerHTML = '';
+            Object.entries(this.bots).forEach(([botId, bot]) => {
+                const amt = this.botAllocations[botId] || 0;
+                const item = document.createElement('div');
+                item.className = 'stat-item';
+                item.innerHTML = `<span class="stat-label">${bot.name}</span><span class="stat-value">$${amt.toFixed(2)}</span>`;
+                list.appendChild(item);
+            });
+        }
+    }
+
+    depositFunds() {
+        const amt = parseFloat(document.getElementById('deposit-amount').value) || 0;
+        if (amt <= 0) return;
+        this.accountMain += amt;
+        this.availableFunds += amt;
+        this.updateAccountUI();
+        this.addAlert('success', 'Deposit', `Deposited $${amt.toFixed(2)} to account`);
+    }
+
+    transferToBot() {
+        const sel = document.getElementById('transfer-bot');
+        const amt = parseFloat(document.getElementById('transfer-amount').value) || 0;
+        if (!sel || !sel.value || amt <= 0) return;
+        if (amt > this.availableFunds) {
+            this.addAlert('warning', 'Insufficient Funds', 'Not enough available funds');
+            return;
+        }
+        this.availableFunds -= amt;
+        this.botAllocations[sel.value] = (this.botAllocations[sel.value] || 0) + amt;
+        this.updateAccountUI();
+        this.addAlert('success', 'Transfer', `Transferred $${amt.toFixed(2)} to ${this.bots[sel.value].name}`);
+    }
+
+    withdrawFromBot() {
+        const sel = document.getElementById('transfer-bot');
+        const amt = parseFloat(document.getElementById('transfer-amount').value) || 0;
+        if (!sel || !sel.value || amt <= 0) return;
+        const allocated = this.botAllocations[sel.value] || 0;
+        if (amt > allocated) {
+            this.addAlert('warning', 'Insufficient Allocation', 'Not enough allocated to withdraw');
+            return;
+        }
+        this.botAllocations[sel.value] = allocated - amt;
+        this.availableFunds += amt;
+        this.updateAccountUI();
+        this.addAlert('success', 'Withdrawal', `Withdrew $${amt.toFixed(2)} from ${this.bots[sel.value].name}`);
+    }
+
+    renderActiveBots() {
+        const container = document.getElementById('active-bots-container');
+        if (!container) return;
+        container.innerHTML = '';
+        Object.entries(this.bots).forEach(([botId, bot]) => {
+            const btn = document.createElement('button');
+            btn.className = 'active-bot-btn';
+            const dotClass = bot.active ? 'online' : 'offline';
+            const botPnl = (this.botAllocations[botId] || 0) > 0 ? (Math.random() - 0.5) * 10 : 0; // placeholder P&L%
+            const arrow = botPnl > 0 ? '▲' : (botPnl < 0 ? '▼' : '•');
+            btn.innerHTML = `<span class="status-dot ${dotClass}"></span><span>${bot.name} (${bot.asset})</span><span style="margin-left:6px;color:${botPnl>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(botPnl).toFixed(1)}%</span>`;
+            btn.title = bot.active ? 'Active' : 'Inactive';
+            btn.addEventListener('click', () => {
+                const selector = document.getElementById('bot-selector');
+                if (selector) selector.value = botId;
+                this.selectBot(botId);
+                this.showBotManagement(botId);
+            });
+            btn.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                this.showBotManagement(botId);
+            });
+            container.appendChild(btn);
+        });
     }
     
     updateLastUpdateTime() {
@@ -935,8 +1325,18 @@ class ATBDashboard {
             root.style.setProperty(property, input.value);
         });
         
+        const fontSelector = document.getElementById('font-family-selector');
+        if (fontSelector) {
+            this.applyFontFamily(fontSelector.value);
+        }
+        
         this.addAlert('success', 'Custom Theme Applied', 'Your custom theme has been applied');
         this.hideModal();
+    }
+
+    applyFontFamily(fontFamily) {
+        document.documentElement.style.setProperty('--font-family', fontFamily);
+        this.addAlert('info', 'Font Updated', 'Font family changed');
     }
     
     resetTheme() {
@@ -1458,52 +1858,129 @@ class ATBDashboard {
     
     // Bot management
     showBotManagement(botId) {
-        const botManagement = document.getElementById('bot-management');
+        const modal = document.getElementById('bot-management-modal');
+        if (!modal) return;
         if (botId && this.bots[botId]) {
-            botManagement.style.display = 'block';
+            modal.classList.add('show');
             this.loadBotSettings(botId);
         } else {
-            botManagement.style.display = 'none';
+            modal.classList.add('show');
+            this.loadBotSettings(null);
         }
     }
     
     loadBotSettings(botId) {
-        const bot = this.bots[botId];
-        if (bot) {
-            document.getElementById('bot-name').value = bot.name || '';
-            document.getElementById('bot-strategy').value = bot.strategy || 'ma';
-            document.getElementById('bot-frequency').value = bot.frequency || 'realtime';
-            document.getElementById('bot-risk').value = bot.risk || 'medium';
-            document.getElementById('bot-floor-price').value = bot.floor_price || 0;
-            document.getElementById('bot-daily-limit').value = bot.daily_loss_limit || 1000;
-            document.getElementById('bot-max-positions').value = bot.max_positions || 10;
+        this.currentBot = botId || this.currentBot;
+        const bot = botId ? this.bots[botId] : null;
+        document.getElementById('bot-name').value = bot?.name || '';
+        document.getElementById('bot-asset').value = bot?.asset || '';
+        document.getElementById('bot-strategy').value = bot?.strategy || 'ma';
+        document.getElementById('bot-frequency').value = bot?.frequency || 'realtime';
+        document.getElementById('bot-risk').value = bot?.risk || 'medium';
+        document.getElementById('bot-floor-price').value = bot?.floor_price || 0;
+        document.getElementById('bot-daily-limit').value = bot?.daily_loss_limit || 1000;
+        document.getElementById('bot-max-positions').value = bot?.max_positions || 10;
+        this.renderBotManagementChart(bot);
+    }
+
+    renderBotManagementChart(bot) {
+        const canvas = document.getElementById('bot-management-chart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (this.botManagementChart) {
+            this.botManagementChart.destroy();
         }
+        const asset = bot?.asset || 'AAPL';
+        const data = this.marketData[asset] || this.generateMockMarketData(asset);
+        const labels = data.map(d => new Date(d.time).toLocaleTimeString());
+        const prices = data.map(d => d.price);
+        // Use same buy/sell datasets for markers
+        const buySignals = [];
+        const sellSignals = [];
+        for (let i = 1; i < prices.length; i++) {
+            if (Math.random() < 0.03) {
+                if (prices[i] > prices[i-1]) buySignals.push({ x: i, y: prices[i] });
+                else sellSignals.push({ x: i, y: prices[i] });
+            }
+        }
+        this.botManagementChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label: `${asset} Price`, data: prices, borderColor: '#ffd700', backgroundColor: 'rgba(255,215,0,0.1)', borderWidth: 2, fill: true, tension: 0.4 },
+                    { label: 'Buy', data: buySignals, borderColor: '#28a745', backgroundColor: '#28a745', borderWidth: 0, pointRadius: 6, pointHoverRadius: 8, showLine: false },
+                    { label: 'Sell', data: sellSignals, borderColor: '#dc3545', backgroundColor: '#dc3545', borderWidth: 0, pointRadius: 6, pointHoverRadius: 8, showLine: false }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#ffffff' } } }, scales: { x: { ticks: { color: '#cccccc' } }, y: { ticks: { color: '#cccccc' } } } }
+        });
     }
     
     saveBotSettings() {
-        const botId = document.getElementById('bot-selector').value;
-        if (!botId || !this.bots[botId]) return;
+        this.createOrUpdateBotFromModal(false);
+    }
+
+    createOrUpdateBotFromModal(isCreate) {
+        const name = document.getElementById('bot-name').value.trim();
+        const asset = document.getElementById('bot-asset').value.trim();
+        const strategy = document.getElementById('bot-strategy').value;
+        const frequency = document.getElementById('bot-frequency').value;
+        const risk = document.getElementById('bot-risk').value;
+        const floorPrice = parseFloat(document.getElementById('bot-floor-price').value) || 0;
+        const dailyLimit = parseFloat(document.getElementById('bot-daily-limit').value) || 1000;
+        const maxPositions = parseInt(document.getElementById('bot-max-positions').value) || 10;
         
-        const bot = this.bots[botId];
-        bot.name = document.getElementById('bot-name').value;
-        bot.strategy = document.getElementById('bot-strategy').value;
-        bot.frequency = document.getElementById('bot-frequency').value;
-        bot.risk = document.getElementById('bot-risk').value;
-        bot.floor_price = parseFloat(document.getElementById('bot-floor-price').value) || 0;
-        bot.daily_loss_limit = parseFloat(document.getElementById('bot-daily-limit').value) || 1000;
-        bot.max_positions = parseInt(document.getElementById('bot-max-positions').value) || 10;
-        
-        // Update bot selector dropdown
-        const option = document.querySelector(`#bot-selector option[value="${botId}"]`);
-        if (option) {
-            option.textContent = `${bot.name} (${bot.asset})`;
+        if (isCreate) {
+            if (!name || !asset) {
+                this.addAlert('warning', 'Missing Fields', 'Please provide Bot Name and Asset');
+                return;
+            }
+            const botId = `bot_${Date.now()}`;
+            this.bots[botId] = {
+                name,
+                asset,
+                type: this.getMarketType(asset),
+                active: false,
+                strategy,
+                frequency,
+                risk,
+                floor_price: floorPrice,
+                daily_loss_limit: dailyLimit,
+                max_positions: maxPositions,
+                created: Date.now(),
+                stats: { total_pnl: 0, daily_pnl: 0, trades_count: 0, win_rate: 0 }
+            };
+            // Add to selector
+            const botSelector = document.getElementById('bot-selector');
+            if (botSelector) {
+                const option = document.createElement('option');
+                option.value = botId;
+                option.textContent = `${name} (${asset})`;
+                botSelector.appendChild(option);
+            }
+            this.addAlert('success', 'Bot Created', `${name} created for ${asset}`);
+        } else {
+            const botId = this.currentBot;
+            if (!botId || !this.bots[botId]) return;
+            const bot = this.bots[botId];
+            bot.name = name || bot.name;
+            bot.asset = asset || bot.asset;
+            bot.strategy = strategy;
+            bot.frequency = frequency;
+            bot.risk = risk;
+            bot.floor_price = floorPrice;
+            bot.daily_loss_limit = dailyLimit;
+            bot.max_positions = maxPositions;
+            const option = document.querySelector(`#bot-selector option[value="${botId}"]`);
+            if (option) option.textContent = `${bot.name} (${bot.asset})`;
+            this.addAlert('success', 'Settings Saved', `Bot settings updated for ${bot.name}`);
         }
-        
-        this.addAlert('success', 'Settings Saved', `Bot settings updated for ${bot.name}`);
+        this.renderActiveBots();
     }
     
     deleteBot() {
-        const botId = document.getElementById('bot-selector').value;
+        const botId = this.currentBot;
         if (!botId || !this.bots[botId]) return;
         
         if (confirm('Are you sure you want to delete this bot?')) {
@@ -1516,7 +1993,8 @@ class ATBDashboard {
             }
             
             // Hide management panel
-            document.getElementById('bot-management').style.display = 'none';
+            const modal = document.getElementById('bot-management-modal');
+            if (modal) modal.classList.remove('show');
             
             this.addAlert('success', 'Bot Deleted', 'Bot has been removed');
         }
@@ -1851,6 +2329,7 @@ class ATBDashboard {
         this.selectedMarket = null;
         
         this.addAlert('success', 'Bot Created', `Created ${botName} for ${this.selectedMarket.name}`);
+        this.renderActiveBots();
     }
     
     getMarketType(symbol) {

@@ -78,7 +78,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
     background-color: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
@@ -188,7 +188,8 @@ body {
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-primary);
-    height: fit-content;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
     position: sticky;
     top: 100px;
 }
@@ -316,6 +317,8 @@ body {
     flex-direction: column;
     gap: var(--spacing-lg);
     min-width: 0;
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
 }
 
 .section-header {
@@ -346,7 +349,7 @@ body {
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-primary);
-    height: 400px;
+    min-height: 420px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -354,7 +357,7 @@ body {
 
 .chart-container {
     position: relative;
-    height: 300px;
+    height: 360px;
     width: 100%;
     flex: 1;
     overflow: auto;
@@ -477,6 +480,55 @@ body {
     border: 1px solid var(--border-primary);
 }
 
+/* Active Bots */
+.active-bots {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-primary);
+}
+
+.active-bots-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.active-bot-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online {
+    background-color: var(--success);
+    box-shadow: 0 0 6px var(--success);
+}
+
+.status-dot.offline {
+    background-color: var(--danger);
+    box-shadow: 0 0 6px var(--danger);
+}
+
+.active-bot-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--gold-primary);
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -591,6 +643,9 @@ body {
     background: var(--bg-secondary);
     border-top: 1px solid var(--border-primary);
     padding: var(--spacing-md) var(--spacing-xl);
+    position: sticky;
+    bottom: 0;
+    width: 100%;
     margin-top: var(--spacing-xl);
 }
 
@@ -670,6 +725,10 @@ body {
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
+}
+
+.bot-management-modal-content {
+    max-width: 720px;
 }
 
 .modal-header {
@@ -875,6 +934,17 @@ body {
     border-radius: var(--radius-sm);
     padding: var(--spacing-md);
     margin-bottom: var(--spacing-md);
+}
+
+.account-actions .config-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.account-allocations h4 {
+    color: var(--gold-primary);
+    margin: var(--spacing-md) 0;
 }
 
 .account-balance,

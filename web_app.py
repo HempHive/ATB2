@@ -30,6 +30,8 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 import pandas as pd
+import csv
+from io import StringIO
 
 # Import existing ATB components
 from core.bot_manager import BotManager
@@ -39,6 +41,44 @@ from config.settings import load_settings
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+# Simple CSV persistence for Digital Bank assets
+BANK_CSV_PATH = project_root / 'data' / 'digital_bank.csv'
+
+def ensure_bank_csv():
+    BANK_CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if not BANK_CSV_PATH.exists():
+        with open(BANK_CSV_PATH, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['id','name','ref','qty','value'])
+            writer.writerow(['bank_1','Lamborghini','LAM-001','1','250000'])
+            writer.writerow(['bank_2','A Seat in the Kop','KOP-1892','1','50000'])
+            writer.writerow(['bank_3','Crypto-currency','CRY-001','3','15000'])
+
+def read_bank_csv():
+    ensure_bank_csv()
+    assets = []
+    with open(BANK_CSV_PATH, 'r') as f:
+        rdr = csv.DictReader(f)
+        for row in rdr:
+            try:
+                assets.append({
+                    'id': row['id'],
+                    'name': row['name'],
+                    'ref': row['ref'],
+                    'qty': int(row['qty']),
+                    'value': float(row['value'])
+                })
+            except Exception:
+                continue
+    return assets
+
+def write_bank_csv(assets):
+    ensure_bank_csv()
+    with open(BANK_CSV_PATH, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['id','name','ref','qty','value'])
+        for a in assets:
+            writer.writerow([a.get('id'), a.get('name'), a.get('ref'), a.get('qty'), a.get('value')])
 
 # Global instances
 log_manager = LogManager()
@@ -591,6 +631,49 @@ def get_asset_market_data(asset):
     timeframe = request.args.get('timeframe', '1h')
     data = web_bot_manager.get_market_data(asset, timeframe)
     return jsonify(data)
+
+@app.route('/api/bank/assets', methods=['GET'])
+def bank_list_assets():
+    return jsonify({'assets': read_bank_csv()})
+
+@app.route('/api/bank/assets', methods=['POST'])
+def bank_add_asset():
+    incoming = request.get_json() or {}
+    assets = read_bank_csv()
+    assets.append({
+        'id': incoming.get('id') or f"bank_{int(time.time())}",
+        'name': incoming.get('name', ''),
+        'ref': incoming.get('ref', ''),
+        'qty': int(incoming.get('qty') or 0),
+        'value': float(incoming.get('value') or 0)
+    })
+    write_bank_csv(assets)
+    return jsonify({'success': True})
+
+@app.route('/api/bank/assets/<asset_id>', methods=['PUT'])
+def bank_update_asset(asset_id):
+    incoming = request.get_json() or {}
+    assets = read_bank_csv()
+    updated = False
+    for a in assets:
+        if a['id'] == asset_id:
+            a['name'] = incoming.get('name', a['name'])
+            a['ref'] = incoming.get('ref', a['ref'])
+            a['qty'] = int(incoming.get('qty', a['qty']))
+            a['value'] = float(incoming.get('value', a['value']))
+            updated = True
+            break
+    if updated:
+        write_bank_csv(assets)
+        return jsonify({'success': True})
+    return jsonify({'error': 'Not found'}), 404
+
+@app.route('/api/bank/assets/<asset_id>', methods=['DELETE'])
+def bank_delete_asset(asset_id):
+    assets = read_bank_csv()
+    assets = [a for a in assets if a['id'] != asset_id]
+    write_bank_csv(assets)
+    return jsonify({'success': True})
 
 @app.route('/api/ticker', methods=['GET'])
 def get_ticker_data():

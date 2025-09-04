@@ -14,6 +14,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600;700&family=Poppins:wght@300;400;600;700&family=Inter:wght@300;400;600;700&family=Source+Sans+3:wght@300;400;600;700&family=Nunito:wght@300;400;600;700&family=Raleway:wght@300;400;600;700&family=Merriweather:wght@300;400;700&family=Ubuntu:wght@300;400;700&family=Work+Sans:wght@300;400;600;700&family=Noto+Sans:wght@300;400;600;700&family=PT+Sans:wght@400;700&family=Oswald:wght@300;400;600;700&family=Rubik:wght@300;400;600;700&family=Quicksand:wght@300;400;600;700&family=Fira+Sans:wght@300;400;600;700&family=Mulish:wght@300;400;600;700&family=Karla:wght@300;400;600;700&family=Cabin:wght@400;600;700&family=Heebo:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="dark-theme">
     <!-- Header -->
@@ -24,6 +25,15 @@
                 <h1>ATB - Auto Trading Bot Dashboard</h1>
             </div>
             <div class="header-controls">
+                <button id="digital-account" class="btn btn-secondary">
+                    <i class="fas fa-wallet"></i> Digital Account
+                </button>
+                <button id="digital-bank" class="btn btn-secondary">
+                    <i class="fas fa-vault"></i> Digital Bank
+                </button>
+                <button id="digital-currency" class="btn btn-secondary">
+                    <i class="fas fa-coins"></i> Digital Currency
+                </button>
                 <button id="market-review" class="btn btn-info">
                     <i class="fas fa-chart-bar"></i> Market Review
                 </button>
@@ -162,64 +172,7 @@
                 </select>
             </section>
 
-            <!-- Bot Management Panel -->
-            <section class="bot-management" id="bot-management" style="display: none;">
-                <h3><i class="fas fa-cogs"></i> Bot Management</h3>
-                <div class="bot-settings">
-                    <div class="setting-group">
-                        <label for="bot-name">Bot Name:</label>
-                        <input type="text" id="bot-name" class="config-input" placeholder="Enter bot name">
-                    </div>
-                    <div class="setting-group">
-                        <label for="bot-strategy">Strategy:</label>
-                        <select id="bot-strategy" class="config-input">
-                            <option value="ma">Moving Average</option>
-                            <option value="rsi">RSI</option>
-                            <option value="macd">MACD</option>
-                            <option value="bollinger">Bollinger Bands</option>
-                            <option value="custom">Custom</option>
-                        </select>
-                    </div>
-                    <div class="setting-group">
-                        <label for="bot-frequency">Frequency:</label>
-                        <select id="bot-frequency" class="config-input">
-                            <option value="realtime">Real-time</option>
-                            <option value="1m">1 Minute</option>
-                            <option value="5m">5 Minutes</option>
-                            <option value="15m">15 Minutes</option>
-                            <option value="1h">1 Hour</option>
-                        </select>
-                    </div>
-                    <div class="setting-group">
-                        <label for="bot-risk">Risk Level:</label>
-                        <select id="bot-risk" class="config-input">
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
-                    <div class="setting-group">
-                        <label for="bot-floor-price">Floor Price:</label>
-                        <input type="number" id="bot-floor-price" class="config-input" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="setting-group">
-                        <label for="bot-daily-limit">Daily Loss Limit:</label>
-                        <input type="number" id="bot-daily-limit" class="config-input" placeholder="1000" step="10">
-                    </div>
-                    <div class="setting-group">
-                        <label for="bot-max-positions">Max Positions:</label>
-                        <input type="number" id="bot-max-positions" class="config-input" placeholder="10" step="1">
-                    </div>
-                    <div class="bot-actions">
-                        <button id="save-bot-settings" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Save Settings
-                        </button>
-                        <button id="delete-bot" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Delete Bot
-                        </button>
-                    </div>
-                </div>
-            </section>
+            <!-- Bot Management Panel moved to dashboard -->
 
             <!-- Bot Configuration -->
             <section class="bot-config" id="bot-config">
@@ -330,6 +283,10 @@
 
         <!-- Main Dashboard -->
         <div class="dashboard">
+            <section class="active-bots" id="active-bots">
+                <h3><i class="fas fa-robot"></i> Active Bots</h3>
+                <div id="active-bots-container" class="active-bots-container"></div>
+            </section>
             <!-- Market Graph Section -->
             <section class="market-graph">
                 <div class="section-header">
@@ -338,6 +295,8 @@
                         <div class="current-market" id="current-market">
                             <span class="market-label">Current Market:</span>
                             <span class="market-display" id="market-display">Select a market to view</span>
+                            <span class="market-label" style="margin-left:8px;">Bot:</span>
+                            <span class="market-display" id="bot-stats-display">--</span>
                         </div>
                     </div>
                     <div class="graph-controls">
@@ -376,6 +335,8 @@
                     <canvas id="market-chart"></canvas>
                 </div>
             </section>
+
+            <!-- Bot Management now shown as floating modal -->
 
             <!-- Market Ticker -->
             <section class="market-ticker">
@@ -749,6 +710,175 @@
             </div>
             <div class="modal-footer">
                 <button id="alert-ok" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bot Management Modal -->
+    <div id="bot-management-modal" class="modal">
+        <div class="modal-content bot-management-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cogs"></i> Bot Management</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="bot-settings">
+                    <div class="setting-group">
+                        <label for="bot-name">Bot Name:</label>
+                        <input type="text" id="bot-name" class="config-input" placeholder="Enter bot name">
+                    </div>
+                    <div class="setting-group">
+                        <label for="bot-asset">Asset:</label>
+                        <input type="text" id="bot-asset" class="config-input" placeholder="e.g., AAPL, BTC-USD">
+                    </div>
+                    <div class="setting-group">
+                        <label for="bot-strategy">Strategy:</label>
+                        <select id="bot-strategy" class="config-input">
+                            <option value="ma">Moving Average</option>
+                            <option value="rsi">RSI</option>
+                            <option value="macd">MACD</option>
+                            <option value="bollinger">Bollinger Bands</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label for="bot-frequency">Frequency:</label>
+                        <select id="bot-frequency" class="config-input">
+                            <option value="realtime">Real-time</option>
+                            <option value="1m">1 Minute</option>
+                            <option value="5m">5 Minutes</option>
+                            <option value="15m">15 Minutes</option>
+                            <option value="1h">1 Hour</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label for="bot-risk">Risk Level:</label>
+                        <select id="bot-risk" class="config-input">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label for="bot-floor-price">Floor Price:</label>
+                        <input type="number" id="bot-floor-price" class="config-input" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="setting-group">
+                        <label for="bot-daily-limit">Daily Loss Limit:</label>
+                        <input type="number" id="bot-daily-limit" class="config-input" placeholder="1000" step="10">
+                    </div>
+                    <div class="setting-group">
+                        <label for="bot-max-positions">Max Positions:</label>
+                        <input type="number" id="bot-max-positions" class="config-input" placeholder="10" step="1">
+                    </div>
+                </div>
+                <div class="bot-controls mt-md">
+                    <button id="modal-start-bot" class="btn btn-success"><i class="fas fa-play"></i> Start</button>
+                    <button id="modal-pause-bot" class="btn btn-warning"><i class="fas fa-pause"></i> Pause</button>
+                    <button id="modal-reset-bot" class="btn btn-danger"><i class="fas fa-stop"></i> Reset</button>
+                </div>
+                <div class="market-graph bot-modal-graph">
+                    <div class="section-header">
+                        <div class="graph-title">
+                            <h2><i class="fas fa-chart-line"></i> Bot Market Activity</h2>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="bot-management-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="create-new-bot" class="btn btn-success"><i class="fas fa-plus"></i> Create Bot</button>
+                <button id="save-bot-settings" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                <button id="delete-bot" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Digital Account Modal -->
+    <div id="account-modal" class="modal">
+        <div class="modal-content theme-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-wallet"></i> Digital Account</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="account-summary">
+                    <div class="account-info">
+                        <div class="account-balance"><label>Account Balance:</label> <span id="account-balance-main">$0.00</span></div>
+                        <div class="available-funds"><label>Available:</label> <span id="available-funds-main">$0.00</span></div>
+                    </div>
+                </div>
+                <div class="account-actions">
+                    <div class="config-group">
+                        <label for="deposit-amount">Deposit Amount:</label>
+                        <input type="number" id="deposit-amount" class="config-input" placeholder="100.00" step="0.01">
+                        <button id="deposit-funds" class="btn btn-primary">Deposit</button>
+                    </div>
+                    <div class="config-group">
+                        <label for="transfer-bot">Transfer to Bot:</label>
+                        <select id="transfer-bot" class="config-input"></select>
+                        <input type="number" id="transfer-amount" class="config-input" placeholder="50.00" step="0.01">
+                        <button id="transfer-to-bot" class="btn btn-success">Transfer to Bot</button>
+                        <button id="withdraw-from-bot" class="btn btn-danger">Withdraw from Bot</button>
+                    </div>
+                </div>
+                <div class="account-allocations">
+                    <h4>Bot Allocations</h4>
+                    <div id="bot-allocations-list" class="portfolio-stats"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Digital Bank Modal -->
+    <div id="bank-modal" class="modal">
+        <div class="modal-content investment-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-vault"></i> Digital Bank</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-group">
+                    <label for="bank-asset-name">Asset Name</label>
+                    <input type="text" id="bank-asset-name" class="config-input" placeholder="e.g., Crypto-currency">
+                </div>
+                <div class="config-group">
+                    <label for="bank-asset-ref">Reference</label>
+                    <input type="text" id="bank-asset-ref" class="config-input" placeholder="e.g., REF-001">
+                </div>
+                <div class="config-group">
+                    <label for="bank-asset-qty">Quantity</label>
+                    <input type="number" id="bank-asset-qty" class="config-input" placeholder="1" step="1">
+                </div>
+                <div class="config-group">
+                    <label for="bank-asset-value">Current Value ($)</label>
+                    <input type="number" id="bank-asset-value" class="config-input" placeholder="1000.00" step="0.01">
+                </div>
+                <div class="bot-actions">
+                    <button id="bank-add-asset" class="btn btn-success"><i class="fas fa-plus"></i> Add</button>
+                    <button id="bank-update-asset" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
+                    <button id="bank-delete-asset" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                    <button id="bank-export-csv" class="btn btn-secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
+                </div>
+                <div class="portfolio-summary">
+                    <h4>Stored Assets</h4>
+                    <div id="bank-assets-list" class="portfolio-stats"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Digital Currency Modal -->
+    <div id="currency-modal" class="modal">
+        <div class="modal-content investment-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-coins"></i> Digital Currencies</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="top-cryptos" class="portfolio-stats"></div>
             </div>
         </div>
     </div>
