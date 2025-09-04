@@ -76,6 +76,8 @@ class ATBDashboard {
         this.setupWebSocket();
         this.updateUI();
         this.prefetchPopularTimeframes();
+        // Apply Forest theme as default
+        this.applyPresetTheme('forest');
         // Persist bot state periodically and on unload
         setInterval(() => this.persistBotState(), 30000);
         window.addEventListener('beforeunload', () => {
@@ -1522,12 +1524,18 @@ class ATBDashboard {
                 '--text-secondary': '#ffccbc'
             },
             'forest': {
-                '--bg-primary': '#0a2a1a',
+                '--bg-primary': '#0a0a0a',
                 '--bg-secondary': '#0f3d2a',
                 '--bg-tertiary': '#14573d',
+                '--bg-card': '#1e3d2a',
+                '--bg-hover': '#2a4d3a',
                 '--gold-primary': '#66bb6a',
+                '--gold-secondary': '#81c784',
+                '--gold-dark': '#4caf50',
+                '--gold-light': '#c8e6c9',
                 '--text-primary': '#e8f5e9',
-                '--text-secondary': '#c8e6c9'
+                '--text-secondary': '#c8e6c9',
+                '--text-muted': '#a5d6a7'
             }
         };
         
@@ -1740,8 +1748,8 @@ class ATBDashboard {
                 const results = (data.results || []).map(r => ({ key: r.key || r.symbol, symbol: r.symbol, name: r.name, price: r.price, type: r.type }));
                 this.displayMarketResults(results);
             } else {
-                const mockResults = this.getMockMarketResults(searchTerm);
-                this.displayMarketResults(mockResults);
+            const mockResults = this.getMockMarketResults(searchTerm);
+            this.displayMarketResults(mockResults);
             }
         } catch (error) {
             const mockResults = this.getMockMarketResults(searchTerm);
@@ -2447,7 +2455,7 @@ class ATBDashboard {
             bot.max_positions = maxPositions;
             const option = document.querySelector(`#bot-selector option[value="${botId}"]`);
             if (option) option.textContent = `${bot.name} (${bot.asset})`;
-            this.addAlert('success', 'Settings Saved', `Bot settings updated for ${bot.name}`);
+        this.addAlert('success', 'Settings Saved', `Bot settings updated for ${bot.name}`);
         }
         this.renderActiveBots();
     }
