@@ -76,8 +76,12 @@ class ATBDashboard {
         this.setupWebSocket();
         this.updateUI();
         this.prefetchPopularTimeframes();
-        // Apply Forest theme as default
-        this.applyPresetTheme('forest');
+        
+        // Apply Forest theme as default after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            this.applyPresetTheme('forest');
+        }, 100);
+        
         // Persist bot state periodically and on unload
         setInterval(() => this.persistBotState(), 30000);
         window.addEventListener('beforeunload', () => {
@@ -1471,57 +1475,120 @@ class ATBDashboard {
                 '--bg-primary': '#0a0a0a',
                 '--bg-secondary': '#1a1a1a',
                 '--bg-tertiary': '#2a2a2a',
+                '--bg-card': '#1e1e1e',
+                '--bg-hover': '#333333',
                 '--gold-primary': '#ffd700',
+                '--gold-secondary': '#ffed4e',
+                '--gold-dark': '#b8860b',
+                '--gold-light': '#fff8dc',
                 '--text-primary': '#ffffff',
-                '--text-secondary': '#cccccc'
+                '--text-secondary': '#cccccc',
+                '--text-muted': '#888888',
+                '--border-primary': '#444444',
+                '--border-secondary': '#666666',
+                '--border-gold': '#ffd700'
             },
             'dark-blue': {
                 '--bg-primary': '#0a0f1a',
                 '--bg-secondary': '#1a2332',
                 '--bg-tertiary': '#2a3441',
+                '--bg-card': '#1e2a3a',
+                '--bg-hover': '#334a5a',
                 '--gold-primary': '#4a9eff',
+                '--gold-secondary': '#6bb6ff',
+                '--gold-dark': '#2e7ce6',
+                '--gold-light': '#b3d9ff',
                 '--text-primary': '#ffffff',
-                '--text-secondary': '#b3c7d9'
+                '--text-secondary': '#b3c7d9',
+                '--text-muted': '#8fa3b3',
+                '--border-primary': '#3a4a5a',
+                '--border-secondary': '#4a5a6a',
+                '--border-gold': '#4a9eff'
             },
             'green-dark': {
                 '--bg-primary': '#0a1a0a',
                 '--bg-secondary': '#1a2e1a',
                 '--bg-tertiary': '#2a3e2a',
+                '--bg-card': '#1e3a1e',
+                '--bg-hover': '#334a33',
                 '--gold-primary': '#00ff88',
+                '--gold-secondary': '#4cffa3',
+                '--gold-dark': '#00cc6a',
+                '--gold-light': '#b3ffcc',
                 '--text-primary': '#ffffff',
-                '--text-secondary': '#b3d9b3'
+                '--text-secondary': '#b3d9b3',
+                '--text-muted': '#8fcc8f',
+                '--border-primary': '#3a4a3a',
+                '--border-secondary': '#4a5a4a',
+                '--border-gold': '#00ff88'
             },
             'purple-dark': {
                 '--bg-primary': '#1a0a1a',
                 '--bg-secondary': '#2e1a2e',
                 '--bg-tertiary': '#3e2a3e',
+                '--bg-card': '#3a1e3a',
+                '--bg-hover': '#4a334a',
                 '--gold-primary': '#ff4aff',
+                '--gold-secondary': '#ff7aff',
+                '--gold-dark': '#cc3acc',
+                '--gold-light': '#ffccff',
                 '--text-primary': '#ffffff',
-                '--text-secondary': '#d9b3d9'
+                '--text-secondary': '#d9b3d9',
+                '--text-muted': '#cc99cc',
+                '--border-primary': '#4a3a4a',
+                '--border-secondary': '#5a4a5a',
+                '--border-gold': '#ff4aff'
             },
             'red-dark': {
                 '--bg-primary': '#1a0a0a',
                 '--bg-secondary': '#2e1a1a',
                 '--bg-tertiary': '#3e2a2a',
+                '--bg-card': '#3a1e1e',
+                '--bg-hover': '#4a3333',
                 '--gold-primary': '#ff4a4a',
+                '--gold-secondary': '#ff7a7a',
+                '--gold-dark': '#cc3a3a',
+                '--gold-light': '#ffcccc',
                 '--text-primary': '#ffffff',
-                '--text-secondary': '#d9b3b3'
+                '--text-secondary': '#d9b3b3',
+                '--text-muted': '#cc9999',
+                '--border-primary': '#4a3a3a',
+                '--border-secondary': '#5a4a4a',
+                '--border-gold': '#ff4a4a'
             },
             'ocean': {
                 '--bg-primary': '#0a1f2a',
                 '--bg-secondary': '#0f2f3d',
                 '--bg-tertiary': '#144657',
+                '--bg-card': '#1e3a4a',
+                '--bg-hover': '#2a4a5a',
                 '--gold-primary': '#29b6f6',
+                '--gold-secondary': '#4fc3f7',
+                '--gold-dark': '#0288d1',
+                '--gold-light': '#b3e5fc',
                 '--text-primary': '#e3f2fd',
-                '--text-secondary': '#b3e5fc'
+                '--text-secondary': '#b3e5fc',
+                '--text-muted': '#81d4fa',
+                '--border-primary': '#2a4a5a',
+                '--border-secondary': '#3a5a6a',
+                '--border-gold': '#29b6f6'
             },
             'sunset': {
                 '--bg-primary': '#2a0a0a',
                 '--bg-secondary': '#3d0f0f',
                 '--bg-tertiary': '#571414',
+                '--bg-card': '#4a1e1e',
+                '--bg-hover': '#5a2f2f',
                 '--gold-primary': '#ff8a65',
+                '--gold-secondary': '#ffab91',
+                '--gold-dark': '#ff7043',
+                '--gold-light': '#ffccbc',
                 '--text-primary': '#ffe0b2',
-                '--text-secondary': '#ffccbc'
+                '--text-secondary': '#ffccbc',
+                '--text-muted': '#ffab91',
+                '--border-primary': '#5a3a3a',
+                '--border-secondary': '#6a4a4a',
+                '--border-gold': '#ff8a65'
             },
             'forest': {
                 '--bg-primary': '#0a0a0a',
@@ -1535,7 +1602,10 @@ class ATBDashboard {
                 '--gold-light': '#c8e6c9',
                 '--text-primary': '#e8f5e9',
                 '--text-secondary': '#c8e6c9',
-                '--text-muted': '#a5d6a7'
+                '--text-muted': '#a5d6a7',
+                '--border-primary': '#2a4d3a',
+                '--border-secondary': '#3a5d4a',
+                '--border-gold': '#66bb6a'
             }
         };
         
