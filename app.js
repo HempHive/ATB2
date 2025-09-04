@@ -72,24 +72,20 @@ class ATBDashboard {
     
     setupEventListeners() {
         // Theme toggle
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            this.toggleTheme();
-        });
+        const themeToggleEl = document.getElementById('theme-toggle');
+        if (themeToggleEl) themeToggleEl.addEventListener('click', () => this.toggleTheme());
         
         // Market review panel
-        document.getElementById('market-review').addEventListener('click', () => {
-            this.showMarketReviewModal();
-        });
+        const mktReviewEl = document.getElementById('market-review');
+        if (mktReviewEl) mktReviewEl.addEventListener('click', () => this.showMarketReviewModal());
         
         // Investment panel
-        document.getElementById('investment-panel').addEventListener('click', () => {
-            this.showInvestmentModal();
-        });
+        const investEl = document.getElementById('investment-panel');
+        if (investEl) investEl.addEventListener('click', () => this.showInvestmentModal());
         
         // Theme customizer
-        document.getElementById('theme-customizer').addEventListener('click', () => {
-            this.showThemeModal();
-        });
+        const themeCustEl = document.getElementById('theme-customizer');
+        if (themeCustEl) themeCustEl.addEventListener('click', () => this.showThemeModal());
         
         // Bot selector
         document.getElementById('bot-selector').addEventListener('change', (e) => {
@@ -98,62 +94,43 @@ class ATBDashboard {
         });
         
         // Bot controls
-        document.getElementById('start-bot').addEventListener('click', () => {
-            this.startBot();
-        });
-        
-        document.getElementById('pause-bot').addEventListener('click', () => {
-            this.pauseBot();
-        });
-        
-        document.getElementById('reset-bot').addEventListener('click', () => {
-            this.resetBot();
-        });
+        const startBotBtn = document.getElementById('start-bot');
+        if (startBotBtn) startBotBtn.addEventListener('click', () => this.startBot());
+        const pauseBotBtn = document.getElementById('pause-bot');
+        if (pauseBotBtn) pauseBotBtn.addEventListener('click', () => this.pauseBot());
+        const resetBotBtn = document.getElementById('reset-bot');
+        if (resetBotBtn) resetBotBtn.addEventListener('click', () => this.resetBot());
         
         // Configuration changes
-        document.getElementById('asset-selector').addEventListener('change', (e) => {
-            this.updateBotConfig('asset', e.target.value);
-        });
-        
-        document.getElementById('frequency-selector').addEventListener('change', (e) => {
-            this.updateBotConfig('frequency', e.target.value);
-        });
-        
-        document.getElementById('risk-selector').addEventListener('change', (e) => {
-            this.updateBotConfig('risk', e.target.value);
-        });
+        const assetSelectorEl = document.getElementById('asset-selector');
+        if (assetSelectorEl) assetSelectorEl.addEventListener('change', (e) => this.updateBotConfig('asset', e.target.value));
+        const frequencySelectorEl = document.getElementById('frequency-selector');
+        if (frequencySelectorEl) frequencySelectorEl.addEventListener('change', (e) => this.updateBotConfig('frequency', e.target.value));
+        const riskSelectorEl = document.getElementById('risk-selector');
+        if (riskSelectorEl) riskSelectorEl.addEventListener('change', (e) => this.updateBotConfig('risk', e.target.value));
         
         // Risk controls
-        document.getElementById('floor-price').addEventListener('change', (e) => {
-            this.updateRiskConfig('floorPrice', parseFloat(e.target.value));
-        });
-        
-        document.getElementById('daily-loss-limit').addEventListener('change', (e) => {
-            this.updateRiskConfig('dailyLossLimit', parseFloat(e.target.value));
-        });
-        
-        document.getElementById('max-positions').addEventListener('change', (e) => {
-            this.updateRiskConfig('maxPositions', parseInt(e.target.value));
-        });
+        const floorPriceInput = document.getElementById('floor-price');
+        if (floorPriceInput) floorPriceInput.addEventListener('change', (e) => this.updateRiskConfig('floorPrice', parseFloat(e.target.value)));
+        const dailyLossLimitInput = document.getElementById('daily-loss-limit');
+        if (dailyLossLimitInput) dailyLossLimitInput.addEventListener('change', (e) => this.updateRiskConfig('dailyLossLimit', parseFloat(e.target.value)));
+        const maxPositionsInput = document.getElementById('max-positions');
+        if (maxPositionsInput) maxPositionsInput.addEventListener('change', (e) => this.updateRiskConfig('maxPositions', parseInt(e.target.value)));
         
         // Graph controls
-        document.getElementById('toggle-historical').addEventListener('click', () => {
-            this.toggleHistoricalView();
-        });
+        const toggleHistoricalBtn = document.getElementById('toggle-historical');
+        if (toggleHistoricalBtn) toggleHistoricalBtn.addEventListener('click', () => this.toggleHistoricalView());
         
-        document.getElementById('timeframe-selector').addEventListener('change', (e) => {
-            this.updateTimeframe(e.target.value);
-        });
+        const timeframeSelectorEl = document.getElementById('timeframe-selector');
+        if (timeframeSelectorEl) timeframeSelectorEl.addEventListener('change', (e) => this.updateTimeframe(e.target.value));
         
         // Zoom controls
-        document.getElementById('zoom-slider').addEventListener('input', (e) => {
-            this.updateTimeZoom(parseFloat(e.target.value));
-        });
+        const zoomSlider = document.getElementById('zoom-slider');
+        if (zoomSlider) zoomSlider.addEventListener('input', (e) => this.updateTimeZoom(parseFloat(e.target.value)));
         
         // Graph color controls
-        document.getElementById('graph-color').addEventListener('change', (e) => {
-            this.updateGraphColor(e.target.value);
-        });
+        const graphColorPicker = document.getElementById('graph-color');
+        if (graphColorPicker) graphColorPicker.addEventListener('change', (e) => this.updateGraphColor(e.target.value));
         
         // Market selection - immediate graph display
         document.querySelectorAll('.market-item').forEach(item => {
@@ -164,37 +141,29 @@ class ATBDashboard {
         });
         
         // Market category toggles
-        document.getElementById('show-commodities').addEventListener('change', () => {
-            this.toggleMarketCategory('commodities');
-        });
-        document.getElementById('show-stocks').addEventListener('change', () => {
-            this.toggleMarketCategory('stocks');
-        });
-        document.getElementById('show-crypto').addEventListener('change', () => {
-            this.toggleMarketCategory('crypto');
-        });
+        const showCommodities = document.getElementById('show-commodities');
+        if (showCommodities) showCommodities.addEventListener('change', () => this.toggleMarketCategory('commodities'));
+        const showStocks = document.getElementById('show-stocks');
+        if (showStocks) showStocks.addEventListener('change', () => this.toggleMarketCategory('stocks'));
+        const showCrypto = document.getElementById('show-crypto');
+        if (showCrypto) showCrypto.addEventListener('change', () => this.toggleMarketCategory('crypto'));
         
         // Create bot for selected market
-        document.getElementById('create-bot').addEventListener('click', () => {
-            this.createBotForMarket();
-        });
+        const createBotBtn = document.getElementById('create-bot');
+        if (createBotBtn) createBotBtn.addEventListener('click', () => this.createBotForMarket());
         
         // Bot management
-        document.getElementById('save-bot-settings').addEventListener('click', () => {
-            this.saveBotSettings();
-        });
-        document.getElementById('delete-bot').addEventListener('click', () => {
-            this.deleteBot();
-        });
+        const saveBotBtn = document.getElementById('save-bot-settings');
+        if (saveBotBtn) saveBotBtn.addEventListener('click', () => this.saveBotSettings());
+        const deleteBotBtn = document.getElementById('delete-bot');
+        if (deleteBotBtn) deleteBotBtn.addEventListener('click', () => this.deleteBot());
         
         // Footer actions
-        document.getElementById('export-data').addEventListener('click', () => {
-            this.exportData();
-        });
+        const exportDataBtn = document.getElementById('export-data');
+        if (exportDataBtn) exportDataBtn.addEventListener('click', () => this.exportData());
         
-        document.getElementById('sim-mode').addEventListener('click', () => {
-            this.toggleSimulationMode();
-        });
+        const simModeBtn = document.getElementById('sim-mode');
+        if (simModeBtn) simModeBtn.addEventListener('click', () => this.toggleSimulationMode());
         
         const accBtn = document.getElementById('digital-account');
         if (accBtn) accBtn.addEventListener('click', () => this.showAccountModal());
@@ -210,28 +179,18 @@ class ATBDashboard {
             });
         });
         
-        document.getElementById('alert-ok').addEventListener('click', () => {
-            this.hideModal();
-        });
+        const alertOkBtn = document.getElementById('alert-ok');
+        if (alertOkBtn) alertOkBtn.addEventListener('click', () => this.hideModal());
         
         // Close modal on outside click
-        document.getElementById('alert-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'alert-modal') {
-                this.hideModal();
-            }
-        });
+        const alertModal = document.getElementById('alert-modal');
+        if (alertModal) alertModal.addEventListener('click', (e) => { if (e.target.id === 'alert-modal') this.hideModal(); });
         
-        document.getElementById('theme-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'theme-modal') {
-                this.hideModal();
-            }
-        });
+        const themeModal = document.getElementById('theme-modal');
+        if (themeModal) themeModal.addEventListener('click', (e) => { if (e.target.id === 'theme-modal') this.hideModal(); });
         
-        document.getElementById('investment-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'investment-modal') {
-                this.hideModal();
-            }
-        });
+        const investmentModal = document.getElementById('investment-modal');
+        if (investmentModal) investmentModal.addEventListener('click', (e) => { if (e.target.id === 'investment-modal') this.hideModal(); });
         
         const botMgmtModal = document.getElementById('bot-management-modal');
         if (botMgmtModal) {
@@ -243,13 +202,11 @@ class ATBDashboard {
         }
         
         // Theme customization
-        document.getElementById('apply-theme').addEventListener('click', () => {
-            this.applyCustomTheme();
-        });
+        const applyThemeBtn = document.getElementById('apply-theme');
+        if (applyThemeBtn) applyThemeBtn.addEventListener('click', () => this.applyCustomTheme());
         
-        document.getElementById('reset-theme').addEventListener('click', () => {
-            this.resetTheme();
-        });
+        const resetThemeBtn = document.getElementById('reset-theme');
+        if (resetThemeBtn) resetThemeBtn.addEventListener('click', () => this.resetTheme());
         
         const createNewBotBtn = document.getElementById('create-new-bot');
         if (createNewBotBtn) {
