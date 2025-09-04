@@ -24,7 +24,7 @@
         <div class="header-content">
             <div class="logo">
                 <i class="fas fa-robot"></i>
-                <h1>ATB - Auto Trading Bot Dashboard</h1>
+                <h1>ATB 🐶</h1>
             </div>
             <div class="header-controls">
                 <button id="digital-account" class="btn btn-secondary">
@@ -37,13 +37,16 @@
                     <i class="fas fa-coins"></i> Digital Currency
                 </button>
                 <button id="market-review" class="btn btn-info">
-                    <i class="fas fa-chart-bar"></i> Market Review
+                    <i class="fas fa-chart-bar"></i> Market Data
+                </button>
+                <button id="strategy-editor" class="btn btn-secondary">
+                    <i class="fas fa-sliders-h"></i> Strategy Editor
                 </button>
                 <button id="investment-panel" class="btn btn-primary">
-                    <i class="fas fa-chart-pie"></i> Investments
+                    <i class="fas fa-chart-pie"></i> Portfolio Investments
                 </button>
                 <button id="theme-customizer" class="btn btn-secondary">
-                    <i class="fas fa-palette"></i> Customize
+                    <i class="fas fa-palette"></i> GUI Customise
                 </button>
                 <button id="theme-toggle" class="theme-toggle">
                     <i class="fas fa-moon"></i>
@@ -174,39 +177,6 @@
                 </select>
             </section>
 
-            <!-- Strategy Editor -->
-            <section class="market-selection">
-                <h3><i class="fas fa-sliders-h"></i> Strategy Editor</h3>
-                <div class="config-group">
-                    <label for="strategy-type">Strategy:</label>
-                    <select id="strategy-type" class="config-input">
-                        <option value="ma">Moving Average Crossover</option>
-                        <option value="rsi">RSI Threshold</option>
-                        <option value="macd">MACD</option>
-                        <option value="bollinger">Bollinger Bands</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="param1">Param 1:</label>
-                    <input type="number" id="param1" class="config-input" placeholder="Short MA / RSI / etc" value="14">
-                </div>
-                <div class="config-group">
-                    <label for="param2">Param 2:</label>
-                    <input type="number" id="param2" class="config-input" placeholder="Long MA / MACD slow" value="28">
-                </div>
-                <div class="config-group">
-                    <label for="param3">Param 3:</label>
-                    <input type="number" id="param3" class="config-input" placeholder="Threshold / bands" value="70">
-                </div>
-                <div class="bot-actions">
-                    <button id="run-backtest" class="btn btn-primary"><i class="fas fa-play"></i> Backtest</button>
-                </div>
-                <div class="market-graph mt-md">
-                    <div class="chart-container" style="height:240px;">
-                        <canvas id="backtest-chart"></canvas>
-                    </div>
-                </div>
-            </section>
 
             <!-- Bot Management Panel moved to dashboard -->
 
@@ -608,6 +578,42 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="investment-category">
+                        <h4><i class="fas fa-gem"></i> Physical Precious Metals</h4>
+                        <div class="investment-options">
+                            <div class="investment-option">
+                                <div class="option-info">
+                                    <h5>Gold Bullion</h5>
+                                    <p>Invest in physical gold bars and coins</p>
+                                    <span class="option-price">Starting at $1,500</span>
+                                </div>
+                                <button class="btn btn-primary invest-btn" data-type="metals" data-category="gold">
+                                    <i class="fas fa-coins"></i> Invest
+                                </button>
+                            </div>
+                            <div class="investment-option">
+                                <div class="option-info">
+                                    <h5>Silver Bullion</h5>
+                                    <p>Physical silver bars, coins, and rounds</p>
+                                    <span class="option-price">Starting at $500</span>
+                                </div>
+                                <button class="btn btn-primary invest-btn" data-type="metals" data-category="silver">
+                                    <i class="fas fa-coins"></i> Invest
+                                </button>
+                            </div>
+                            <div class="investment-option">
+                                <div class="option-info">
+                                    <h5>Platinum & Palladium</h5>
+                                    <p>Rare precious metals for diversification</p>
+                                    <span class="option-price">Starting at $2,000</span>
+                                </div>
+                                <button class="btn btn-primary invest-btn" data-type="metals" data-category="platinum">
+                                    <i class="fas fa-gem"></i> Invest
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="portfolio-summary">
@@ -911,6 +917,51 @@
             </div>
             <div class="modal-body">
                 <div id="top-cryptos" class="portfolio-stats"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy Editor Modal -->
+    <div id="strategy-editor-modal" class="modal">
+        <div class="modal-content strategy-editor-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sliders-h"></i> Strategy Editor</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="strategy-settings">
+                    <div class="config-group">
+                        <label for="strategy-type">Strategy:</label>
+                        <select id="strategy-type" class="config-input">
+                            <option value="ma">Moving Average Crossover</option>
+                            <option value="rsi">RSI Threshold</option>
+                            <option value="macd">MACD</option>
+                            <option value="bollinger">Bollinger Bands</option>
+                        </select>
+                    </div>
+                    <div class="config-group">
+                        <label for="param1">Param 1:</label>
+                        <input type="number" id="param1" class="config-input" placeholder="Short MA / RSI / etc" value="14">
+                    </div>
+                    <div class="config-group">
+                        <label for="param2">Param 2:</label>
+                        <input type="number" id="param2" class="config-input" placeholder="Long MA / MACD slow" value="28">
+                    </div>
+                    <div class="config-group">
+                        <label for="param3">Param 3:</label>
+                        <input type="number" id="param3" class="config-input" placeholder="Threshold / bands" value="70">
+                    </div>
+                    <div class="bot-actions">
+                        <button id="run-backtest" class="btn btn-primary"><i class="fas fa-play"></i> Run Backtest</button>
+                    </div>
+                </div>
+                <div class="backtest-results mt-md" style="display: none;">
+                    <h4>Backtest Results</h4>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="backtest-chart"></canvas>
+                    </div>
+                    <div class="backtest-stats mt-sm"></div>
+                </div>
             </div>
         </div>
     </div>

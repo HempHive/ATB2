@@ -30,6 +30,7 @@ class ATBDashboard {
         this.marketData = {};
         this.timeframeCache = {}; // { symbol: { timeframe: [data] } }
         this.backtestConfigs = {}; // { botId: { type, p1, p2, p3 } }
+        this.botIntervals = {}; // { botId: intervalId } for tracking bot simulation intervals
         this.availableMarkets = [];
         this.selectedMarket = null;
         this.currentMarketDisplay = null;
@@ -90,6 +91,10 @@ class ATBDashboard {
         // Market review panel
         const mktReviewEl = document.getElementById('market-review');
         if (mktReviewEl) mktReviewEl.addEventListener('click', () => this.showMarketReviewModal());
+        
+        // Strategy editor panel
+        const strategyEditorEl = document.getElementById('strategy-editor');
+        if (strategyEditorEl) strategyEditorEl.addEventListener('click', () => this.showStrategyEditorModal());
         
         // Investment panel
         const investEl = document.getElementById('investment-panel');
@@ -647,19 +652,25 @@ class ATBDashboard {
     selectBot(botId) {
         if (!botId) {
             this.currentBot = null;
-            document.getElementById('bot-config').style.display = 'none';
+            const botConfigEl = document.getElementById('bot-config');
+            if (botConfigEl) botConfigEl.style.display = 'none';
             return;
         }
         
         this.currentBot = botId;
         const bot = this.bots[botId];
+        if (!bot) return;
         
-        // Update configuration UI
-        document.getElementById('asset-selector').value = bot.asset;
-        document.getElementById('bot-config').style.display = 'block';
+        // Update configuration UI - check if elements exist first
+        const assetSelectorEl = document.getElementById('asset-selector');
+        if (assetSelectorEl) assetSelectorEl.value = bot.asset;
+        
+        const botConfigEl = document.getElementById('bot-config');
+        if (botConfigEl) botConfigEl.style.display = 'block';
         
         // Update chart
         this.updateChart();
+        
         // Update bot stats badge in graph header
         const allocation = this.botAllocations[botId] || 0;
         const pnlPercent = (Math.random() - 0.5) * 10; // placeholder; replace with real calc
@@ -701,6 +712,33 @@ class ATBDashboard {
         this.addAlert('warning', 'Bot Paused', `${bot.name} has been paused`);
         this.annotateChartEvent('PAUSE', bot.asset);
         this.renderActiveBots();
+    }
+    
+    deactivateBot(botId) {
+        if (!botId || !this.bots[botId]) {
+            this.addAlert('error', 'Invalid Bot', 'Bot not found');
+            return;
+        }
+        
+        const bot = this.bots[botId];
+        bot.active = false;
+        
+        // Stop any ongoing simulation for this bot
+        if (this.botIntervals && this.botIntervals[botId]) {
+            clearInterval(this.botIntervals[botId]);
+            delete this.botIntervals[botId];
+        }
+        
+        this.updateBotStatus();
+        this.addAlert('info', 'Bot Deactivated', `${bot.name} has been deactivated`);
+        this.renderActiveBots();
+        
+        // If this was the currently selected bot, clear the selection
+        if (this.currentBot === botId) {
+            this.currentBot = null;
+            const botConfigEl = document.getElementById('bot-config');
+            if (botConfigEl) botConfigEl.style.display = 'none';
+        }
     }
     
     resetBot() {
@@ -949,7 +987,8 @@ class ATBDashboard {
         
         // Continue simulation if bot is still active
         if (this.bots[this.currentBot].active) {
-            setTimeout(() => this.simulateBotActivity(), 10000 + Math.random() * 20000);
+            const intervalId = setTimeout(() => this.simulateBotActivity(), 10000 + Math.random() * 20000);
+            this.botIntervals[this.currentBot] = intervalId;
         }
     }
     
@@ -1326,9 +1365,54 @@ class ATBDashboard {
         if (!container) return;
         container.innerHTML = '';
         Object.entries(this.bots).forEach(([botId, bot]) => {
+            const botWrapper = document.createElement('div');
+            botWrapper.className = 'bot-item-wrapper';
+            botWrapper.style.display = 'flex';
+            botWrapper.style.alignItems = 'center';
+            botWrapper.style.gap = '8px';
+            botWrapper.style.marginBottom = '8px';
+            
+            // Create status indicator button (clickable for activate/deactivate)
+            const statusBtn = document.createElement('button');
+            statusBtn.className = 'status-indicator-btn';
+            statusBtn.style.background = 'none';
+            statusBtn.style.border = 'none';
+            statusBtn.style.padding = '4px';
+            statusBtn.style.cursor = 'pointer';
+            statusBtn.style.borderRadius = '50%';
+            statusBtn.style.display = 'flex';
+            statusBtn.style.alignItems = 'center';
+            statusBtn.style.justifyContent = 'center';
+            statusBtn.style.transition = 'all 0.2s ease';
+            
+            const dotClass = bot.active ? 'online' : 'offline';
+            statusBtn.innerHTML = `<span class="status-dot ${dotClass}"></span>`;
+            statusBtn.title = bot.active ? 'Click to deactivate bot' : 'Click to activate bot';
+            
+            // Add hover effect
+            statusBtn.addEventListener('mouseenter', () => {
+                statusBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            });
+            statusBtn.addEventListener('mouseleave', () => {
+                statusBtn.style.backgroundColor = 'transparent';
+            });
+            
+            // Status indicator click handler
+            statusBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (bot.active) {
+                    if (confirm(`Are you sure you want to deactivate ${bot.name}?`)) {
+                        this.deactivateBot(botId);
+                    }
+                } else {
+                    this.currentBot = botId;
+                    this.startBot();
+                }
+            });
+            
+            // Create main bot info button
             const btn = document.createElement('button');
             btn.className = 'active-bot-btn';
-            const dotClass = bot.active ? 'online' : 'offline';
             const m = this.botMetrics[botId] || { qty: 0, avgCost: 0, realizedPnl: 0 };
             const allocation = this.botAllocations[botId] || 0;
             const asset = bot.asset;
@@ -1338,8 +1422,9 @@ class ATBDashboard {
             const total = allocation + m.realizedPnl + unrealized;
             const pct = allocation > 0 ? ((total - allocation) / allocation) * 100 : 0;
             const arrow = pct > 0 ? '▲' : (pct < 0 ? '▼' : '•');
-            btn.innerHTML = `<span class="status-dot ${dotClass}"></span><span>${bot.name} (${bot.asset})</span><span style="margin-left:6px;color:${pct>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
-            btn.title = bot.active ? 'Active' : 'Inactive';
+            btn.innerHTML = `<span>${bot.name} (${bot.asset})</span><span style="margin-left:6px;color:${pct>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
+            btn.title = 'Click to select bot, Right-click for management';
+            btn.style.flex = '1';
             btn.addEventListener('click', () => {
                 const selector = document.getElementById('bot-selector');
                 if (selector) selector.value = botId;
@@ -1349,7 +1434,10 @@ class ATBDashboard {
                 e.preventDefault();
                 this.showBotManagement(botId);
             });
-            container.appendChild(btn);
+            
+            botWrapper.appendChild(statusBtn);
+            botWrapper.appendChild(btn);
+            container.appendChild(botWrapper);
         });
     }
     
@@ -1795,6 +1883,11 @@ class ATBDashboard {
                 'pharma': 10000,
                 'gene-therapy': 15000,
                 'devices': 7500
+            },
+            'metals': {
+                'gold': 1500,
+                'silver': 500,
+                'platinum': 2000
             }
         };
         
@@ -1848,6 +1941,19 @@ class ATBDashboard {
         this.renderReviewActiveBots();
         const printBtn = document.getElementById('print-bot-report');
         if (printBtn) printBtn.addEventListener('click', () => this.printBotReport());
+    }
+    
+    // Strategy Editor functionality
+    showStrategyEditorModal() {
+        const modal = document.getElementById('strategy-editor-modal');
+        if (!modal) return;
+        
+        // Restore backtest config for current bot if available
+        if (this.currentBot) {
+            this.restoreBacktestConfigToUi(this.currentBot);
+        }
+        
+        modal.classList.add('show');
     }
     
     generateMarketReview() {
@@ -2264,6 +2370,13 @@ class ATBDashboard {
             options: { responsive: true, maintainAspectRatio: false }
         });
         this.addAlert('success', 'Backtest Complete', `Strategy: ${type.toUpperCase()} - Final Equity: $${equity[equity.length-1].y.toFixed(2)}`);
+        
+        // Show backtest results section in modal
+        const backtestResults = document.querySelector('#strategy-editor-modal .backtest-results');
+        if (backtestResults) {
+            backtestResults.style.display = 'block';
+        }
+        
         if (p1 <= 0 || p2 <= 0 || p3 <= 0) return;
         if ((type === 'ma' || type === 'macd') && p2 <= p1) return;
         if (this.chart) {

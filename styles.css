@@ -423,8 +423,9 @@ body {
     background: var(--bg-tertiary);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-primary);
-    min-width: 180px;
+    min-width: 200px;
     max-width: none;
+    white-space: nowrap;
 }
 
 .ticker-symbol {
@@ -438,6 +439,9 @@ body {
 
 .ticker-change {
     font-size: 0.9rem;
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: right;
 }
 
 .ticker-change.positive {
@@ -731,6 +735,11 @@ body {
 
 .bot-management-modal-content {
     max-width: 720px;
+}
+
+.strategy-editor-modal-content {
+    max-width: 800px;
+    width: 90vw;
 }
 
 .modal-header {
