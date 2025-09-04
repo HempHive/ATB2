@@ -1016,6 +1016,8 @@ body {
 .theme-modal-content {
     max-width: 600px;
     width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
 .theme-presets {

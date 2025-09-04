@@ -1222,8 +1222,7 @@ class ATBDashboard {
             btn.addEventListener('click', () => {
                 const selector = document.getElementById('bot-selector');
                 if (selector) selector.value = botId;
-                this.selectBot(botId);
-                this.showBotManagement(botId);
+                this.selectBot(botId); // only update main graph and header
             });
             btn.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
@@ -1296,6 +1295,30 @@ class ATBDashboard {
                 '--gold-primary': '#ff4a4a',
                 '--text-primary': '#ffffff',
                 '--text-secondary': '#d9b3b3'
+            },
+            'ocean': {
+                '--bg-primary': '#0a1f2a',
+                '--bg-secondary': '#0f2f3d',
+                '--bg-tertiary': '#144657',
+                '--gold-primary': '#29b6f6',
+                '--text-primary': '#e3f2fd',
+                '--text-secondary': '#b3e5fc'
+            },
+            'sunset': {
+                '--bg-primary': '#2a0a0a',
+                '--bg-secondary': '#3d0f0f',
+                '--bg-tertiary': '#571414',
+                '--gold-primary': '#ff8a65',
+                '--text-primary': '#ffe0b2',
+                '--text-secondary': '#ffccbc'
+            },
+            'forest': {
+                '--bg-primary': '#0a2a1a',
+                '--bg-secondary': '#0f3d2a',
+                '--bg-tertiary': '#14573d',
+                '--gold-primary': '#66bb6a',
+                '--text-primary': '#e8f5e9',
+                '--text-secondary': '#c8e6c9'
             }
         };
         
@@ -1499,15 +1522,21 @@ class ATBDashboard {
     
     // Market search functionality
     async searchMarkets() {
-        const searchTerm = document.getElementById('market-search').value.trim();
+        const searchTerm = document.getElementById('market-search')?.value.trim();
         if (!searchTerm) return;
-        
         try {
-            // Simulate market search - in real implementation, use actual API
+            const resp = await fetch('/api/markets/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ search_term: searchTerm }) });
+            if (resp.ok) {
+                const data = await resp.json();
+                const results = (data.results || []).map(r => ({ key: r.key || r.symbol, symbol: r.symbol, name: r.name, price: r.price, type: r.type }));
+                this.displayMarketResults(results);
+            } else {
+                const mockResults = this.getMockMarketResults(searchTerm);
+                this.displayMarketResults(mockResults);
+            }
+        } catch (error) {
             const mockResults = this.getMockMarketResults(searchTerm);
             this.displayMarketResults(mockResults);
-        } catch (error) {
-            this.addAlert('danger', 'Search Error', 'Failed to search markets');
         }
     }
     
@@ -1866,6 +1895,16 @@ class ATBDashboard {
         } else {
             modal.classList.add('show');
             this.loadBotSettings(null);
+        }
+        // Inject sidebar Bot Configuration and Risk Controls into modal context
+        const cfg = document.getElementById('bot-config');
+        const risk = document.querySelector('.risk-controls');
+        const modalBody = modal.querySelector('.modal-body');
+        if (cfg && risk && modalBody && !this._botCfgInjected) {
+            // recreate minimal fields in modal are already present; just hide sidebar ones permanently
+            cfg.style.display = 'none';
+            risk.style.display = 'none';
+            this._botCfgInjected = true;
         }
     }
     

@@ -175,56 +175,10 @@
             <!-- Bot Management Panel moved to dashboard -->
 
             <!-- Bot Configuration -->
-            <section class="bot-config" id="bot-config">
-                <h3><i class="fas fa-cog"></i> Bot Configuration</h3>
-                <div class="config-group">
-                    <label for="asset-selector">Asset:</label>
-                    <select id="asset-selector" class="config-input">
-                        <option value="AAPL">AAPL</option>
-                        <option value="GOOGL">GOOGL</option>
-                        <option value="MSFT">MSFT</option>
-                        <option value="TSLA">TSLA</option>
-                        <option value="AMZN">AMZN</option>
-                        <option value="BTC">Bitcoin</option>
-                        <option value="ETH">Ethereum</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="frequency-selector">Frequency:</label>
-                    <select id="frequency-selector" class="config-input">
-                        <option value="realtime">Real-time</option>
-                        <option value="1m">1 Minute</option>
-                        <option value="5m">5 Minutes</option>
-                        <option value="15m">15 Minutes</option>
-                        <option value="1h">1 Hour</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="risk-selector">Risk Profile:</label>
-                    <select id="risk-selector" class="config-input">
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                </div>
-            </section>
+            <section class="bot-config" id="bot-config" style="display:none;"></section>
 
             <!-- Risk Controls -->
-            <section class="risk-controls">
-                <h3><i class="fas fa-shield-alt"></i> Risk Controls</h3>
-                <div class="control-group">
-                    <label for="floor-price">Floor Price Warning:</label>
-                    <input type="number" id="floor-price" class="config-input" placeholder="0.00" step="0.01">
-                </div>
-                <div class="control-group">
-                    <label for="daily-loss-limit">Daily Loss Limit:</label>
-                    <input type="number" id="daily-loss-limit" class="config-input" placeholder="1000.00" step="0.01">
-                </div>
-                <div class="control-group">
-                    <label for="max-positions">Max Positions:</label>
-                    <input type="number" id="max-positions" class="config-input" placeholder="10" min="1" max="50">
-                </div>
-            </section>
+            <section class="risk-controls" style="display:none;"></section>
 
             <!-- Live Trading Panel -->
             <section class="live-trading-panel">
@@ -651,6 +605,9 @@
                         <button class="preset-btn" data-theme="green-dark">Green Dark</button>
                         <button class="preset-btn" data-theme="purple-dark">Purple Dark</button>
                         <button class="preset-btn" data-theme="red-dark">Red Dark</button>
+                        <button class="preset-btn" data-theme="ocean">Ocean</button>
+                        <button class="preset-btn" data-theme="sunset">Sunset</button>
+                        <button class="preset-btn" data-theme="forest">Forest</button>
                     </div>
                 </div>
                 <div class="color-customization">
@@ -687,6 +644,34 @@
                         <div class="color-item">
                             <label>Info Color:</label>
                             <input type="color" id="info-color" value="#17a2b8">
+                        </div>
+                        <div class="color-item">
+                            <label>Font Family:</label>
+                            <select id="font-family-selector" class="config-input">
+                                <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Default</option>
+                                <option value="'Roboto', sans-serif">Roboto</option>
+                                <option value="'Open Sans', sans-serif">Open Sans</option>
+                                <option value="'Lato', sans-serif">Lato</option>
+                                <option value="'Montserrat', sans-serif">Montserrat</option>
+                                <option value="'Poppins', sans-serif">Poppins</option>
+                                <option value="'Inter', sans-serif">Inter</option>
+                                <option value="'Source Sans 3', sans-serif">Source Sans 3</option>
+                                <option value="'Nunito', sans-serif">Nunito</option>
+                                <option value="'Raleway', sans-serif">Raleway</option>
+                                <option value="'Merriweather', serif">Merriweather</option>
+                                <option value="'Ubuntu', sans-serif">Ubuntu</option>
+                                <option value="'Work Sans', sans-serif">Work Sans</option>
+                                <option value="'Noto Sans', sans-serif">Noto Sans</option>
+                                <option value="'PT Sans', sans-serif">PT Sans</option>
+                                <option value="'Oswald', sans-serif">Oswald</option>
+                                <option value="'Rubik', sans-serif">Rubik</option>
+                                <option value="'Quicksand', sans-serif">Quicksand</option>
+                                <option value="'Fira Sans', sans-serif">Fira Sans</option>
+                                <option value="'Mulish', sans-serif">Mulish</option>
+                                <option value="'Karla', sans-serif">Karla</option>
+                                <option value="'Cabin', sans-serif">Cabin</option>
+                                <option value="'Heebo', sans-serif">Heebo</option>
+                            </select>
                         </div>
                     </div>
                 </div>
