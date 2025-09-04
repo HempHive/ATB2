@@ -29,6 +29,7 @@ class ATBDashboard {
         this.investments = [];
         this.marketData = {};
         this.timeframeCache = {}; // { symbol: { timeframe: [data] } }
+        this.backtestConfigs = {}; // { botId: { type, p1, p2, p3 } }
         this.availableMarkets = [];
         this.selectedMarket = null;
         this.currentMarketDisplay = null;
@@ -60,6 +61,7 @@ class ATBDashboard {
         this.botTrades = {}; // { botId: [{type:'BUY'|'SELL', index, price, timestamp}] }
         this.botMetrics = {}; // { botId: { qty, avgCost, realizedPnl, dailyRealized, lastReset } }
         this.restoreBotState();
+        this.restoreBacktestConfigs();
         this.syncBotStateFromServer();
         
         this.init();
@@ -72,6 +74,7 @@ class ATBDashboard {
         this.startDataUpdates();
         this.setupWebSocket();
         this.updateUI();
+        this.prefetchPopularTimeframes();
         // Persist bot state periodically and on unload
         setInterval(() => this.persistBotState(), 30000);
         window.addEventListener('beforeunload', () => {
@@ -244,6 +247,8 @@ class ATBDashboard {
         }
         const runBacktestBtn = document.getElementById('run-backtest');
         if (runBacktestBtn) runBacktestBtn.addEventListener('click', () => this.runBacktest());
+        const botSelectorEl = document.getElementById('bot-selector');
+        if (botSelectorEl) botSelectorEl.addEventListener('change', (e) => this.restoreBacktestConfigToUi(e.target.value));
         
         // Live trading mode
         document.querySelectorAll('input[name="trading-mode"]').forEach(radio => {
@@ -769,6 +774,7 @@ class ATBDashboard {
                 this.chart.data.labels = labels;
                 this.chart.data.datasets[0].data = prices;
                 this.chart.update('none');
+                this.prefetchPopularTimeframes(symbol, timeframe);
             } else {
                 fetch(`/api/market-data/${encodeURIComponent(symbol)}/timeframe?timeframe=${encodeURIComponent(timeframe)}`)
                     .then(r => r.json())
@@ -781,6 +787,7 @@ class ATBDashboard {
                             this.chart.data.labels = labels;
                             this.chart.data.datasets[0].data = prices;
                             this.chart.update('none');
+                            this.prefetchPopularTimeframes(symbol, timeframe);
                         } else {
                             this.updateChartForTimeframe(timeframe);
                         }
@@ -863,6 +870,25 @@ class ATBDashboard {
                 alert.remove();
             }
         }, 10000);
+    }
+
+    prefetchPopularTimeframes(symbol = null, skip = null) {
+        const sym = symbol || (this.currentMarketDisplay && this.currentMarketDisplay.symbol);
+        if (!sym) return;
+        const popular = ['1d','1w','1m'];
+        popular.forEach(tf => {
+            if (skip && tf === skip) return;
+            const has = this.timeframeCache[sym] && this.timeframeCache[sym][tf] && this.timeframeCache[sym][tf].length;
+            if (has) return;
+            fetch(`/api/market-data/${encodeURIComponent(sym)}/timeframe?timeframe=${encodeURIComponent(tf)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!Array.isArray(data) || !data.length) return;
+                    this.timeframeCache[sym] = this.timeframeCache[sym] || {};
+                    this.timeframeCache[sym][tf] = data;
+                })
+                .catch(() => {});
+        });
     }
     
     showAlert(title, message) {
@@ -1012,6 +1038,27 @@ class ATBDashboard {
             this.botTrades = state.botTrades || {};
             this.botMetrics = state.botMetrics || {};
         } catch (e) {}
+    }
+
+    restoreBacktestConfigs() {
+        try {
+            const raw = localStorage.getItem('atb_backtest_configs');
+            if (!raw) return;
+            this.backtestConfigs = JSON.parse(raw) || {};
+        } catch (e) {}
+    }
+
+    restoreBacktestConfigToUi(botId) {
+        const cfg = this.backtestConfigs && this.backtestConfigs[botId];
+        if (!cfg) return;
+        const typeEl = document.getElementById('strategy-type');
+        const p1El = document.getElementById('param1');
+        const p2El = document.getElementById('param2');
+        const p3El = document.getElementById('param3');
+        if (typeEl && cfg.type) typeEl.value = cfg.type;
+        if (p1El && typeof cfg.p1 === 'number') p1El.value = cfg.p1;
+        if (p2El && typeof cfg.p2 === 'number') p2El.value = cfg.p2;
+        if (p3El && typeof cfg.p3 === 'number') p3El.value = cfg.p3;
     }
 
     async syncBotStateFromServer() {
@@ -2143,6 +2190,11 @@ class ATBDashboard {
         const p1 = parseInt(document.getElementById('param1')?.value) || 14;
         const p2 = parseInt(document.getElementById('param2')?.value) || 28;
         const p3 = parseInt(document.getElementById('param3')?.value) || 70;
+        const activeBotId = this.currentBot || Object.keys(this.bots)[0];
+        if (activeBotId) {
+            this.backtestConfigs[activeBotId] = { type, p1, p2, p3 };
+            try { localStorage.setItem('atb_backtest_configs', JSON.stringify(this.backtestConfigs)); } catch(e) {}
+        }
         const botId = this.currentBot || Object.keys(this.bots)[0];
         if (!botId) return;
         const asset = this.bots[botId].asset;
@@ -2212,6 +2264,17 @@ class ATBDashboard {
             options: { responsive: true, maintainAspectRatio: false }
         });
         this.addAlert('success', 'Backtest Complete', `Strategy: ${type.toUpperCase()} - Final Equity: $${equity[equity.length-1].y.toFixed(2)}`);
+        if (p1 <= 0 || p2 <= 0 || p3 <= 0) return;
+        if ((type === 'ma' || type === 'macd') && p2 <= p1) return;
+        if (this.chart) {
+            const displayedSymbol = this.currentMarketDisplay?.symbol || this.bots[this.currentBot || botId]?.asset || null;
+            if (displayedSymbol && displayedSymbol === asset && this.chart.data?.datasets?.length >= 3) {
+                this.chart.data.datasets[1].data = buyMarks;
+                this.chart.data.datasets[2].data = sellMarks;
+                this.chart.update('none');
+                this.addAlert('info','Overlay Applied','Backtest signals overlayed on price chart');
+            }
+        }
     }
     
     saveBotSettings() {
