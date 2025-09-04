@@ -43,6 +43,8 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 # Simple CSV persistence for Digital Bank assets
 BANK_CSV_PATH = project_root / 'data' / 'digital_bank.csv'
+BOT_STATE_PATH = project_root / 'data' / 'bot_state.json'
+BOT_STATE_PATH = project_root / 'data' / 'bot_state.json'
 
 def ensure_bank_csv():
     BANK_CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -79,6 +81,38 @@ def write_bank_csv(assets):
         writer.writerow(['id','name','ref','qty','value'])
         for a in assets:
             writer.writerow([a.get('id'), a.get('name'), a.get('ref'), a.get('qty'), a.get('value')])
+
+def ensure_bot_state():
+    BOT_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if not BOT_STATE_PATH.exists():
+        BOT_STATE_PATH.write_text(json.dumps({ 'botTrades': {}, 'botMetrics': {} }))
+
+def read_bot_state():
+    ensure_bot_state()
+    try:
+        return json.loads(BOT_STATE_PATH.read_text())
+    except Exception:
+        return { 'botTrades': {}, 'botMetrics': {} }
+
+def write_bot_state(state: Dict[str, Any]):
+    ensure_bot_state()
+    BOT_STATE_PATH.write_text(json.dumps(state))
+
+def ensure_bot_state():
+    BOT_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if not BOT_STATE_PATH.exists():
+        BOT_STATE_PATH.write_text(json.dumps({ 'botTrades': {}, 'botMetrics': {} }))
+
+def read_bot_state():
+    ensure_bot_state()
+    try:
+        return json.loads(BOT_STATE_PATH.read_text())
+    except Exception:
+        return { 'botTrades': {}, 'botMetrics': {} }
+
+def write_bot_state(state: Dict[str, Any]):
+    ensure_bot_state()
+    BOT_STATE_PATH.write_text(json.dumps(state))
 
 # Global instances
 log_manager = LogManager()
@@ -707,6 +741,20 @@ def export_data():
     }
     return jsonify(export_data)
 
+@app.route('/api/bots/state', methods=['GET'])
+def bots_state_get():
+    return jsonify(read_bot_state())
+
+@app.route('/api/bots/state', methods=['POST'])
+def bots_state_post():
+    payload = request.get_json() or {}
+    safe = {
+        'botTrades': payload.get('botTrades', {}),
+        'botMetrics': payload.get('botMetrics', {})
+    }
+    write_bot_state(safe)
+    return jsonify({'success': True})
+
 @app.route('/api/broker/connect', methods=['POST'])
 def connect_broker():
     """Connect to a broker for live trading."""
@@ -876,28 +924,36 @@ def get_market_history(asset):
 def get_market_data_timeframe(asset):
     """Get market data for specific timeframe."""
     timeframe = request.args.get('timeframe', '1d')
-    
+    tf_map = {
+        '1m': ('1d', '1m'),
+        '5m': ('5d', '5m'),
+        '15m': ('5d', '15m'),
+        '1h': ('7d', '60m'),
+        '4h': ('1mo', '60m'),
+        '1d': ('1mo', '1d'),
+        '1w': ('3mo', '1d'),
+        '1M': ('6mo', '1d'),
+        '3M': ('1y', '1d'),
+        '6M': ('2y', '1d'),
+        '1y': ('5y', '1d')
+    }
+    period, interval = tf_map.get(timeframe, ('1mo', '1d'))
     try:
-        # Use yfinance to get data for different timeframes
         ticker = yf.Ticker(asset)
-        hist = ticker.history(period=timeframe)
-        
+        hist = ticker.history(period=period, interval=interval)
         if not hist.empty:
             data = []
             for timestamp, row in hist.iterrows():
                 data.append({
                     'time': timestamp.isoformat(),
                     'price': float(row['Close']),
-                    'volume': int(row['Volume']),
+                    'volume': int(row.get('Volume', 0) or 0),
                     'high': float(row['High']),
                     'low': float(row['Low']),
                     'open': float(row['Open'])
                 })
-            
             return jsonify(data)
-        else:
-            return jsonify({'error': 'No data available'}), 404
-            
+        return jsonify({'error': 'No data available'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -1002,6 +1058,24 @@ def generate_market_review_pdf():
         
         story.append(bot_table)
         story.append(Spacer(1, 20))
+        
+        # If requested, include a specific bot's trades (simple example)
+        bot_id = request.args.get('bot_id')
+        if bot_id:
+            state = read_bot_state()
+            trades = state.get('botTrades', {}).get(bot_id, [])
+            story.append(Paragraph(f"Trades for {bot_id}", heading_style))
+            trades_data = [['Time', 'Type', 'Price']]
+            for t in trades[-50:]:
+                ts = datetime.fromtimestamp(t.get('timestamp', time.time())/1000.0).strftime('%Y-%m-%d %H:%M') if t.get('timestamp') else '-'
+                trades_data.append([ts, t.get('type','-'), f"${t.get('price',0):.2f}"])
+            ttable = Table(trades_data)
+            ttable.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ('BACKGROUND', (0,0), (-1,0), colors.darkgrey),
+                ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ]))
+            story.append(ttable)
         
         # Footer
         story.append(Paragraph("This report was generated automatically by the ATB Auto Trading Bot Dashboard.", styles['Normal']))

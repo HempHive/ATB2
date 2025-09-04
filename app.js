@@ -28,6 +28,7 @@ class ATBDashboard {
         this.graphColor = '#ffd700';
         this.investments = [];
         this.marketData = {};
+        this.timeframeCache = {}; // { symbol: { timeframe: [data] } }
         this.availableMarkets = [];
         this.selectedMarket = null;
         this.currentMarketDisplay = null;
@@ -57,6 +58,9 @@ class ATBDashboard {
             winningTrades: 0
         };
         this.botTrades = {}; // { botId: [{type:'BUY'|'SELL', index, price, timestamp}] }
+        this.botMetrics = {}; // { botId: { qty, avgCost, realizedPnl, dailyRealized, lastReset } }
+        this.restoreBotState();
+        this.syncBotStateFromServer();
         
         this.init();
     }
@@ -68,6 +72,11 @@ class ATBDashboard {
         this.startDataUpdates();
         this.setupWebSocket();
         this.updateUI();
+        // Persist bot state periodically and on unload
+        setInterval(() => this.persistBotState(), 30000);
+        window.addEventListener('beforeunload', () => {
+            try { this.persistBotState(); } catch (e) {}
+        });
     }
     
     setupEventListeners() {
@@ -233,6 +242,8 @@ class ATBDashboard {
                 this.applyFontFamily(e.target.value);
             });
         }
+        const runBacktestBtn = document.getElementById('run-backtest');
+        if (runBacktestBtn) runBacktestBtn.addEventListener('click', () => this.runBacktest());
         
         // Live trading mode
         document.querySelectorAll('input[name="trading-mode"]').forEach(radio => {
@@ -488,14 +499,12 @@ class ATBDashboard {
             tickerItem.className = 'ticker-item';
             
             const changeClass = item.change >= 0 ? 'positive' : 'negative';
-            const changeSymbol = item.change >= 0 ? '+' : '';
+            const arrow = item.change >= 0 ? '▲' : '▼';
             
             tickerItem.innerHTML = `
                 <span class="ticker-symbol">${item.symbol}</span>
                 <span class="ticker-price">$${item.price.toFixed(2)}</span>
-                <span class="ticker-change ${changeClass}">
-                    ${changeSymbol}${item.change.toFixed(2)} (${changeSymbol}${item.changePercent.toFixed(2)}%)
-                </span>
+                <span class="ticker-change ${changeClass}">${arrow} ${Math.abs(item.changePercent).toFixed(2)}%</span>
             `;
             
             tickerContainer.appendChild(tickerItem);
@@ -750,8 +759,37 @@ class ATBDashboard {
     
     updateTimeframe(timeframe) {
         this.addAlert('info', 'Timeframe Updated', `Chart timeframe set to ${timeframe}`);
-        // Update chart data based on timeframe
-        this.updateChart();
+        // Fetch data for selected market and timeframe if available
+        if (this.currentMarketDisplay && this.currentMarketDisplay.symbol) {
+            const symbol = this.currentMarketDisplay.symbol;
+            const cache = (this.timeframeCache[symbol] && this.timeframeCache[symbol][timeframe]) || null;
+            if (cache && cache.length) {
+                const labels = cache.map(d => new Date(d.time).toLocaleString());
+                const prices = cache.map(d => d.price);
+                this.chart.data.labels = labels;
+                this.chart.data.datasets[0].data = prices;
+                this.chart.update('none');
+            } else {
+                fetch(`/api/market-data/${encodeURIComponent(symbol)}/timeframe?timeframe=${encodeURIComponent(timeframe)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (Array.isArray(data) && data.length) {
+                            this.timeframeCache[symbol] = this.timeframeCache[symbol] || {};
+                            this.timeframeCache[symbol][timeframe] = data;
+                            const labels = data.map(d => new Date(d.time).toLocaleString());
+                            const prices = data.map(d => d.price);
+                            this.chart.data.labels = labels;
+                            this.chart.data.datasets[0].data = prices;
+                            this.chart.update('none');
+                        } else {
+                            this.updateChartForTimeframe(timeframe);
+                        }
+                    })
+                    .catch(() => this.updateChartForTimeframe(timeframe));
+            }
+        } else {
+            this.updateChartForTimeframe(timeframe);
+        }
     }
     
     toggleSimulationMode() {
@@ -878,6 +916,9 @@ class ATBDashboard {
             this.botTrades[this.currentBot].push({ type: tradeType, index: (this.chart?.data?.labels?.length ?? 1) - 1, price: currentPrice, timestamp: Date.now() });
             // Update chart markers immediately
             this.updateChart();
+            // Update P&L metrics
+            this.updateBotPnL(this.currentBot, tradeType, quantity, currentPrice);
+            this.persistBotState();
         }
         
         // Continue simulation if bot is still active
@@ -913,6 +954,76 @@ class ATBDashboard {
         setInterval(() => {
             this.updateLastUpdateTime();
         }, 1000);
+    }
+
+    updateBotPnL(botId, tradeType, qty, price) {
+        const m = this.botMetrics[botId] || { qty: 0, avgCost: 0, realizedPnl: 0, dailyRealized: 0, lastReset: new Date().toDateString() };
+        const today = new Date().toDateString();
+        if (m.lastReset !== today) { m.dailyRealized = 0; m.lastReset = today; }
+        if (tradeType === 'BUY') {
+            const totalCost = m.avgCost * m.qty + price * qty;
+            m.qty += qty;
+            m.avgCost = m.qty > 0 ? totalCost / m.qty : 0;
+        } else if (tradeType === 'SELL') {
+            const sellQty = Math.min(qty, m.qty);
+            const pnl = (price - m.avgCost) * sellQty;
+            m.qty -= sellQty;
+            if (m.qty === 0) m.avgCost = 0;
+            m.realizedPnl += pnl;
+            m.dailyRealized += pnl;
+        }
+        this.botMetrics[botId] = m;
+        this.renderActiveBots();
+        if (this.currentBot === botId) this.updateSelectedBotHeader();
+    }
+
+    updateSelectedBotHeader() {
+        const botId = this.currentBot;
+        if (!botId) return;
+        const bot = this.bots[botId];
+        const m = this.botMetrics[botId] || { qty: 0, avgCost: 0, realizedPnl: 0, dailyRealized: 0 };
+        const allocation = this.botAllocations[botId] || 0;
+        const asset = bot.asset;
+        const data = this.marketData[asset];
+        const lastPrice = data && data.length ? data[data.length - 1].price : 0;
+        const unrealized = m.qty > 0 ? (lastPrice - m.avgCost) * m.qty : 0;
+        const total = allocation + m.realizedPnl + unrealized;
+        const baseline = Math.max(allocation, 1e-9);
+        const pct = ((total - allocation) / baseline) * 100;
+        const arrow = pct > 0 ? '▲' : (pct < 0 ? '▼' : '•');
+        const statsEl = document.getElementById('bot-stats-display');
+        if (statsEl) statsEl.innerHTML = `${bot.name}: $${total.toFixed(2)} <span style="color:${pct>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
+    }
+
+    persistBotState() {
+        try {
+            const state = { botTrades: this.botTrades, botMetrics: this.botMetrics };
+            localStorage.setItem('atb_bot_state', JSON.stringify(state));
+            fetch('/api/bots/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) })
+                .catch(() => {});
+        } catch (e) {}
+    }
+
+    restoreBotState() {
+        try {
+            const raw = localStorage.getItem('atb_bot_state');
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            this.botTrades = state.botTrades || {};
+            this.botMetrics = state.botMetrics || {};
+        } catch (e) {}
+    }
+
+    async syncBotStateFromServer() {
+        try {
+            const resp = await fetch('/api/bots/state');
+            if (!resp.ok) return;
+            const state = await resp.json();
+            if (state && typeof state === 'object') {
+                this.botTrades = state.botTrades || this.botTrades;
+                this.botMetrics = state.botMetrics || this.botMetrics;
+            }
+        } catch (e) {}
     }
 
     showBankModal() {
@@ -987,7 +1098,7 @@ class ATBDashboard {
         const container = document.getElementById('top-cryptos');
         if (!container) return;
         container.innerHTML = '';
-        const symbols = ['BTC-USD', 'ETH-USD', 'AAPL', 'MSFT', 'TSLA'];
+        const symbols = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'BNB-USD', 'ADA-USD'];
         for (const sym of symbols) {
             try {
                 const resp = await fetch(`/api/market-data/${encodeURIComponent(sym)}`);
@@ -1073,18 +1184,17 @@ class ATBDashboard {
     }
 
     generateQRCodeData(text) {
-        // Simple placeholder QR using data URL with text; integrate real QR lib later
-        const canvas = document.createElement('canvas');
-        const size = 64;
-        canvas.width = size; canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
-        ctx.fillStyle = '#000';
-        for (let i = 0; i < text.length; i++) {
-            const x = (i * 7) % size;
-            const y = Math.floor((i * 7) / size) * 7 % size;
-            if ((text.charCodeAt(i) + i) % 3 === 0) ctx.fillRect(x, y, 4, 4);
+        if (typeof QRCode !== 'undefined') {
+            const temp = document.createElement('div');
+            new QRCode(temp, { text, width: 128, height: 128, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+            const img = temp.querySelector('img') || temp.querySelector('canvas');
+            if (img && img.toDataURL) return img.toDataURL('image/png');
+            if (img && img.src) return img.src;
         }
+        // Fallback: data URL placeholder
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128; const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 128, 128); ctx.fillStyle = '#000'; ctx.fillRect(8,8,16,16); ctx.fillRect(104,8,16,16); ctx.fillRect(8,104,16,16);
         return canvas.toDataURL('image/png');
     }
 
@@ -1172,9 +1282,16 @@ class ATBDashboard {
             const btn = document.createElement('button');
             btn.className = 'active-bot-btn';
             const dotClass = bot.active ? 'online' : 'offline';
-            const botPnl = (this.botAllocations[botId] || 0) > 0 ? (Math.random() - 0.5) * 10 : 0; // placeholder P&L%
-            const arrow = botPnl > 0 ? '▲' : (botPnl < 0 ? '▼' : '•');
-            btn.innerHTML = `<span class="status-dot ${dotClass}"></span><span>${bot.name} (${bot.asset})</span><span style="margin-left:6px;color:${botPnl>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(botPnl).toFixed(1)}%</span>`;
+            const m = this.botMetrics[botId] || { qty: 0, avgCost: 0, realizedPnl: 0 };
+            const allocation = this.botAllocations[botId] || 0;
+            const asset = bot.asset;
+            const data = this.marketData[asset];
+            const lastPrice = data && data.length ? data[data.length - 1].price : 0;
+            const unrealized = m.qty > 0 ? (lastPrice - m.avgCost) * m.qty : 0;
+            const total = allocation + m.realizedPnl + unrealized;
+            const pct = allocation > 0 ? ((total - allocation) / allocation) * 100 : 0;
+            const arrow = pct > 0 ? '▲' : (pct < 0 ? '▼' : '•');
+            btn.innerHTML = `<span class="status-dot ${dotClass}"></span><span>${bot.name} (${bot.asset})</span><span style="margin-left:6px;color:${pct>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
             btn.title = bot.active ? 'Active' : 'Inactive';
             btn.addEventListener('click', () => {
                 const selector = document.getElementById('bot-selector');
@@ -1681,6 +1798,9 @@ class ATBDashboard {
     showMarketReviewModal() {
         document.getElementById('market-review-modal').classList.add('show');
         this.generateMarketReview();
+        this.renderReviewActiveBots();
+        const printBtn = document.getElementById('print-bot-report');
+        if (printBtn) printBtn.addEventListener('click', () => this.printBotReport());
     }
     
     generateMarketReview() {
@@ -1742,6 +1862,111 @@ class ATBDashboard {
         
         // Generate performance chart
         this.generatePerformanceChart();
+    }
+
+    renderReviewActiveBots() {
+        const container = document.getElementById('review-active-bots');
+        const charts = document.getElementById('bot-activity-charts');
+        if (!container || !charts) return;
+        container.innerHTML = '';
+        charts.innerHTML = '';
+        Object.entries(this.bots).forEach(([botId, bot]) => {
+            if (!bot.active) return;
+            const wrap = document.createElement('div');
+            wrap.style.display = 'inline-flex';
+            wrap.style.gap = '8px';
+            const btn = document.createElement('button');
+            btn.className = 'active-bot-btn';
+            btn.innerHTML = `<span class="status-dot online"></span><span>${bot.name} (${bot.asset})</span>`;
+            btn.addEventListener('click', () => this.renderBotActivityCharts(botId));
+            const pdfBtn = document.createElement('button');
+            pdfBtn.className = 'btn btn-secondary';
+            pdfBtn.textContent = 'PDF';
+            pdfBtn.addEventListener('click', () => this.downloadBotPDF(botId));
+            wrap.appendChild(btn);
+            wrap.appendChild(pdfBtn);
+            container.appendChild(wrap);
+        });
+    }
+
+    renderBotActivityCharts(botId) {
+        const charts = document.getElementById('bot-activity-charts');
+        if (!charts) return;
+        this.currentReviewBotId = botId;
+        charts.innerHTML = '';
+        const bot = this.bots[botId];
+        if (!bot) return;
+        const dayCanvas = document.createElement('canvas');
+        dayCanvas.style.height = '240px';
+        charts.appendChild(dayCanvas);
+        const weekCanvas = document.createElement('canvas');
+        weekCanvas.style.height = '240px';
+        charts.appendChild(weekCanvas);
+        const asset = bot.asset;
+        const dayData = this.marketData[asset] || this.generateMockMarketData(asset);
+        const labelsDay = dayData.map(d => new Date(d.time).toLocaleTimeString());
+        const pricesDay = dayData.map(d => d.price);
+        new Chart(dayCanvas.getContext('2d'), { type: 'line', data: { labels: labelsDay, datasets: [{ label: `${bot.name} Today`, data: pricesDay, borderColor: '#ffd700', backgroundColor: 'rgba(255,215,0,0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false }});
+        // Week: try backend timeframe else synthesize
+        fetch(`/api/market-data/${encodeURIComponent(asset)}/timeframe?timeframe=1w`).then(r => r.json()).then(data => {
+            const arr = Array.isArray(data) && data.length ? data : this.generateDataForTimeframe(asset, '1w');
+            const labelsWeek = arr.map(d => new Date(d.time).toLocaleDateString());
+            const pricesWeek = arr.map(d => d.price);
+            new Chart(weekCanvas.getContext('2d'), { type: 'line', data: { labels: labelsWeek, datasets: [{ label: `${bot.name} Last 7 Days`, data: pricesWeek, borderColor: '#29b6f6', backgroundColor: 'rgba(41,182,246,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false }});
+        }).catch(() => {
+            const arr = this.generateDataForTimeframe(asset, '1w');
+            const labelsWeek = arr.map(d => new Date(d.time).toLocaleDateString());
+            const pricesWeek = arr.map(d => d.price);
+            new Chart(weekCanvas.getContext('2d'), { type: 'line', data: { labels: labelsWeek, datasets: [{ label: `${bot.name} Last 7 Days`, data: pricesWeek, borderColor: '#29b6f6', backgroundColor: 'rgba(41,182,246,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false }});
+        });
+    }
+
+    printBotReport() {
+        const modal = document.getElementById('market-review-modal');
+        if (!modal) return;
+        const w = window.open('', 'PRINT', 'height=800,width=1000');
+        if (!w) return;
+        const styles = document.querySelectorAll('link[rel="stylesheet"], style');
+        w.document.write('<html><head><title>Bot Report</title>');
+        styles.forEach(s => w.document.write(s.outerHTML));
+        w.document.write('</head><body class="dark-theme">');
+        const botId = this.currentReviewBotId;
+        const bot = botId ? this.bots[botId] : null;
+        w.document.write(`<h2>Bot Report${bot ? ' - ' + bot.name : ''}</h2>`);
+        const charts = document.getElementById('bot-activity-charts');
+        if (charts) {
+            // clone canvases as images
+            charts.querySelectorAll('canvas').forEach(cv => {
+                const img = new Image();
+                img.src = cv.toDataURL('image/png');
+                img.style.maxWidth = '100%';
+                img.style.display = 'block';
+                img.style.marginBottom = '16px';
+                w.document.body.appendChild(img);
+            });
+        }
+        w.document.write('</body></html>');
+        w.document.close();
+        w.focus();
+        w.print();
+        w.close();
+    }
+
+    downloadBotPDF(botId) {
+        const url = `/api/market-review/pdf?bot_id=${encodeURIComponent(botId)}`;
+        fetch(url)
+            .then(r => { if (r.ok) return r.blob(); throw new Error('PDF generation failed'); })
+            .then(blob => {
+                const href = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = href;
+                a.download = `bot_report_${botId}_${new Date().toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(href);
+            })
+            .catch(() => this.addAlert('danger', 'PDF Error', 'Failed to download bot PDF'));
     }
     
     generateDramaticShifts() {
@@ -1911,6 +2136,82 @@ class ATBDashboard {
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#ffffff' } } }, scales: { x: { ticks: { color: '#cccccc' } }, y: { ticks: { color: '#cccccc' } } } }
         });
+    }
+
+    runBacktest() {
+        const type = document.getElementById('strategy-type')?.value || 'ma';
+        const p1 = parseInt(document.getElementById('param1')?.value) || 14;
+        const p2 = parseInt(document.getElementById('param2')?.value) || 28;
+        const p3 = parseInt(document.getElementById('param3')?.value) || 70;
+        const botId = this.currentBot || Object.keys(this.bots)[0];
+        if (!botId) return;
+        const asset = this.bots[botId].asset;
+        const data = this.marketData[asset] || this.generateMockMarketData(asset);
+        const prices = data.map(d => d.price);
+        const equity = [];
+        const buyMarks = [];
+        const sellMarks = [];
+        let position = 0, cash = 10000, shares = 0, avgCost = 0;
+        const ma = (arr, n, i) => {
+            if (i < n) return null; let s = 0; for (let k=i-n+1; k<=i; k++) s += arr[k]; return s/n;
+        };
+        for (let i=0;i<prices.length;i++) {
+            const price = prices[i];
+            if (type === 'ma') {
+                const short = ma(prices, Math.min(p1, i+1), i);
+                const long = ma(prices, Math.min(p2, i+1), i);
+                if (short != null && long != null) {
+                    if (short > long && position <= 0) { // buy
+                        shares = cash / price; cash = 0; position = 1; avgCost = price;
+                        buyMarks.push({ x: i, y: price });
+                    } else if (short < long && position > 0) { // sell
+                        cash = shares * price; shares = 0; position = 0;
+                        sellMarks.push({ x: i, y: price });
+                    }
+                }
+            } else if (type === 'rsi') {
+                // simple threshold using p1 as period and p3 as overbought
+                // placeholder: buy if price below rolling average, sell if above
+                const base = ma(prices, Math.min(p1, i+1), i);
+                if (base != null) {
+                    if (price < base && position <= 0) { shares = cash / price; cash = 0; position = 1; avgCost = price; buyMarks.push({ x: i, y: price }); }
+                    else if (price > base && position > 0) { cash = shares * price; shares = 0; position = 0; sellMarks.push({ x: i, y: price }); }
+                }
+            } else if (type === 'macd') {
+                // very rough MACD using p1 fast, p2 slow
+                const fast = ma(prices, Math.min(p1, i+1), i);
+                const slow = ma(prices, Math.min(p2, i+1), i);
+                if (fast != null && slow != null) {
+                    if (fast > slow && position <= 0) { shares = cash / price; cash = 0; position = 1; avgCost = price; buyMarks.push({ x: i, y: price }); }
+                    if (fast < slow && position > 0) { cash = shares * price; shares = 0; position = 0; sellMarks.push({ x: i, y: price }); }
+                }
+            } else if (type === 'bollinger') {
+                const n = Math.min(p1, i+1);
+                const mean = ma(prices, n, i);
+                if (mean != null) {
+                    let variance = 0; for (let k=i-n+1;k<=i;k++) variance += Math.pow(prices[k]-mean,2); variance/=n;
+                    const std = Math.sqrt(variance);
+                    const upper = mean + (p3/100)*std; const lower = mean - (p3/100)*std;
+                    if (price < lower && position <= 0) { shares = cash / price; cash = 0; position = 1; avgCost = price; buyMarks.push({ x: i, y: price }); }
+                    if (price > upper && position > 0) { cash = shares * price; shares = 0; position = 0; sellMarks.push({ x: i, y: price }); }
+                }
+            }
+            const equityVal = cash + shares * price;
+            equity.push({ x: i, y: equityVal });
+        }
+        const ctx = document.getElementById('backtest-chart')?.getContext('2d');
+        if (!ctx) return;
+        if (this.backtestChart) this.backtestChart.destroy();
+        this.backtestChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: equity.map(e => e.x), datasets: [
+                { label: `${asset} ${type.toUpperCase()} Backtest`, data: equity.map(e => e.y), borderColor: '#66bb6a', backgroundColor: 'rgba(102,187,106,0.1)', tension: 0.3, fill: true },
+                { label: 'Buys', data: buyMarks, borderColor: '#28a745', backgroundColor: '#28a745', pointRadius: 4, showLine: false },
+                { label: 'Sells', data: sellMarks, borderColor: '#dc3545', backgroundColor: '#dc3545', pointRadius: 4, showLine: false }
+            ] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+        this.addAlert('success', 'Backtest Complete', `Strategy: ${type.toUpperCase()} - Final Equity: $${equity[equity.length-1].y.toFixed(2)}`);
     }
     
     saveBotSettings() {
@@ -2082,7 +2383,9 @@ class ATBDashboard {
     generatePDFReport() {
         this.showLoadingOverlay();
         
-        fetch('/api/market-review/pdf')
+        const botId = this.currentReviewBotId || this.currentBot || '';
+        const url = botId ? `/api/market-review/pdf?bot_id=${encodeURIComponent(botId)}` : '/api/market-review/pdf';
+        fetch(url)
             .then(response => {
                 if (response.ok) {
                     return response.blob();
@@ -2093,7 +2396,8 @@ class ATBDashboard {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `market_review_${new Date().toISOString().split('T')[0]}.pdf`;
+                const nameSuffix = botId ? `_${botId}` : '';
+                a.download = `market_review${nameSuffix}_${new Date().toISOString().split('T')[0]}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
