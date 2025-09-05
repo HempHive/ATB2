@@ -1487,7 +1487,9 @@ class ATBDashboard {
                 '--text-muted': '#888888',
                 '--border-primary': '#444444',
                 '--border-secondary': '#666666',
-                '--border-gold': '#ffd700'
+                '--border-gold': '#ffd700',
+                '--gradient-start': '#0a0a0a',
+                '--gradient-end': '#1e1e1e'
             },
             'dark-blue': {
                 '--bg-primary': '#0a0f1a',
@@ -1505,7 +1507,9 @@ class ATBDashboard {
                 '--text-muted': '#8fa3b3',
                 '--border-primary': '#3a4a5a',
                 '--border-secondary': '#4a5a6a',
-                '--border-gold': '#4a9eff'
+                '--border-gold': '#4a9eff',
+                '--gradient-start': '#0a0f1a',
+                '--gradient-end': '#1e2a3a'
             },
             'green-dark': {
                 '--bg-primary': '#0a1a0a',
@@ -1523,7 +1527,9 @@ class ATBDashboard {
                 '--text-muted': '#8fcc8f',
                 '--border-primary': '#3a4a3a',
                 '--border-secondary': '#4a5a4a',
-                '--border-gold': '#00ff88'
+                '--border-gold': '#00ff88',
+                '--gradient-start': '#0a1a0a',
+                '--gradient-end': '#1e3a1e'
             },
             'purple-dark': {
                 '--bg-primary': '#1a0a1a',
@@ -1541,7 +1547,9 @@ class ATBDashboard {
                 '--text-muted': '#cc99cc',
                 '--border-primary': '#4a3a4a',
                 '--border-secondary': '#5a4a5a',
-                '--border-gold': '#ff4aff'
+                '--border-gold': '#ff4aff',
+                '--gradient-start': '#1a0a1a',
+                '--gradient-end': '#3a1e3a'
             },
             'red-dark': {
                 '--bg-primary': '#1a0a0a',
@@ -1559,7 +1567,9 @@ class ATBDashboard {
                 '--text-muted': '#cc9999',
                 '--border-primary': '#4a3a3a',
                 '--border-secondary': '#5a4a4a',
-                '--border-gold': '#ff4a4a'
+                '--border-gold': '#ff4a4a',
+                '--gradient-start': '#1a0a0a',
+                '--gradient-end': '#3a1e1e'
             },
             'ocean': {
                 '--bg-primary': '#0a1f2a',
@@ -1577,7 +1587,9 @@ class ATBDashboard {
                 '--text-muted': '#81d4fa',
                 '--border-primary': '#2a4a5a',
                 '--border-secondary': '#3a5a6a',
-                '--border-gold': '#29b6f6'
+                '--border-gold': '#29b6f6',
+                '--gradient-start': '#0a1f2a',
+                '--gradient-end': '#1e3a4a'
             },
             'sunset': {
                 '--bg-primary': '#2a0a0a',
@@ -1595,7 +1607,9 @@ class ATBDashboard {
                 '--text-muted': '#ffab91',
                 '--border-primary': '#5a3a3a',
                 '--border-secondary': '#6a4a4a',
-                '--border-gold': '#ff8a65'
+                '--border-gold': '#ff8a65',
+                '--gradient-start': '#2a0a0a',
+                '--gradient-end': '#4a1e1e'
             },
             'forest': {
                 '--bg-primary': '#0a0a0a',
@@ -1613,7 +1627,9 @@ class ATBDashboard {
                 '--text-muted': '#a5d6a7',
                 '--border-primary': '#2a4d3a',
                 '--border-secondary': '#3a5d4a',
-                '--border-gold': '#66bb6a'
+                '--border-gold': '#66bb6a',
+                '--gradient-start': '#0a0a0a',
+                '--gradient-end': '#1e3d2a'
             }
         };
         
