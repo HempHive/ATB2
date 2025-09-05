@@ -112,6 +112,7 @@ body {
     padding: var(--spacing-md) var(--spacing-xl);
     max-width: 1400px;
     margin: 0 auto;
+    flex-wrap: wrap;
 }
 
 .logo {
@@ -119,12 +120,15 @@ body {
     align-items: center;
     gap: var(--spacing-md);
     margin-right: var(--spacing-lg);
+    flex-shrink: 0;
+    min-width: 0;
 }
 
 /* Logo PNG Styles - Three times wider than other buttons */
 .logo-png {
-    width: auto;
-    height: 120px;
+    width: 100%;
+    height: auto;
+    max-height: 120px;
     max-width: 360px;
     cursor: pointer;
     border-radius: var(--radius-md);
@@ -157,6 +161,16 @@ body {
     display: flex !important;
 }
 
+/* Allow buttons to wrap naturally if they need space */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    min-width: 0;
+    flex: 1;
+}
+
 .logo i {
     font-size: 2rem;
     color: var(--gold-primary);
@@ -186,13 +200,16 @@ body {
     display: inline-block;
     margin: 0;
     padding: 0;
+    flex: 1;
+    min-width: 0;
+    max-width: 240px;
 }
 
 /* PNG Button Styles - Completely replaces the button */
 .btn-png {
-    width: auto;
-    height: 120px;
-    max-width: 240px;
+    width: 100%;
+    height: auto;
+    max-height: 120px;
     cursor: pointer;
     border-radius: var(--radius-md);
     border: 2px solid var(--border-gold);
@@ -232,6 +249,8 @@ body {
     display: flex;
     align-items: center;
     gap: 0;
+    flex-wrap: nowrap;
+    min-width: 0;
 }
 
 .theme-toggle {
