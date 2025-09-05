@@ -27,38 +27,54 @@
                 <h1>ATB 🐶</h1>
             </div>
             <div class="header-controls">
-                <button id="digital-account" class="btn btn-secondary">
-                    <img src="images/digital-account.png" alt="Digital Account" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-wallet btn-fallback"></i> <span class="btn-text">Digital Account</span>
-                </button>
-                <button id="digital-bank" class="btn btn-secondary">
-                    <img src="images/digital-bank.png" alt="Digital Bank" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-vault btn-fallback"></i> <span class="btn-text">Digital Bank</span>
-                </button>
-                <button id="digital-currency" class="btn btn-secondary">
-                    <img src="images/digital-currency.png" alt="Digital Currency" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-coins btn-fallback"></i> <span class="btn-text">Digital Currency</span>
-                </button>
-                <button id="market-review" class="btn btn-info">
-                    <img src="images/market-review.png" alt="Market Data" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-chart-bar btn-fallback"></i> <span class="btn-text">Market Data</span>
-                </button>
-                <button id="strategy-editor" class="btn btn-secondary">
-                    <img src="images/strategy-editor.png" alt="Strategy Editor" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-sliders-h btn-fallback"></i> <span class="btn-text">Strategy Editor</span>
-                </button>
-                <button id="investment-panel" class="btn btn-secondary">
-                    <img src="images/investment-panel.png" alt="Portfolio Investments" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-chart-pie btn-fallback"></i> <span class="btn-text">Portfolio Investments</span>
-                </button>
-                <button id="theme-customizer" class="btn btn-secondary">
-                    <img src="images/theme-customizer.png" alt="GUI Customise" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-palette btn-fallback"></i> <span class="btn-text">GUI Customise</span>
-                </button>
-                <button id="theme-toggle" class="theme-toggle">
-                    <img src="images/theme-toggle.png" alt="Theme Toggle" class="btn-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fas fa-moon btn-fallback"></i>
-                </button>
+                <div class="button-container" data-button-id="digital-account">
+                    <img src="images/digital-account.png" alt="Digital Account" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="digital-account" class="btn btn-secondary btn-fallback">
+                        <i class="fas fa-wallet"></i> Digital Account
+                    </button>
+                </div>
+                <div class="button-container" data-button-id="digital-bank">
+                    <img src="images/digital-bank.png" alt="Digital Bank" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="digital-bank" class="btn btn-secondary btn-fallback">
+                        <i class="fas fa-vault"></i> Digital Bank
+                    </button>
+                </div>
+                <div class="button-container" data-button-id="digital-currency">
+                    <img src="images/digital-currency.png" alt="Digital Currency" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="digital-currency" class="btn btn-secondary btn-fallback">
+                        <i class="fas fa-coins"></i> Digital Currency
+                    </button>
+                </div>
+                <div class="button-container" data-button-id="market-review">
+                    <img src="images/market-review.png" alt="Market Data" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="market-review" class="btn btn-info btn-fallback">
+                        <i class="fas fa-chart-bar"></i> Market Data
+                    </button>
+                </div>
+                <div class="button-container" data-button-id="strategy-editor">
+                    <img src="images/strategy-editor.png" alt="Strategy Editor" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="strategy-editor" class="btn btn-secondary btn-fallback">
+                        <i class="fas fa-sliders-h"></i> Strategy Editor
+                    </button>
+                </div>
+                <div class="button-container" data-button-id="investment-panel">
+                    <img src="images/investment-panel.png" alt="Portfolio Investments" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="investment-panel" class="btn btn-secondary btn-fallback">
+                        <i class="fas fa-chart-pie"></i> Portfolio Investments
+                    </button>
+                </div>
+                <div class="button-container" data-button-id="theme-customizer">
+                    <img src="images/theme-customizer.png" alt="GUI Customise" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="theme-customizer" class="btn btn-secondary btn-fallback">
+                        <i class="fas fa-palette"></i> GUI Customise
+                    </button>
+                </div>
+                <div class="button-container" data-button-id="theme-toggle">
+                    <img src="images/theme-toggle.png" alt="Theme Toggle" class="btn-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="theme-toggle" class="theme-toggle btn-fallback">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
                 <div class="connection-status">
                     <span id="connection-indicator" class="status-indicator offline"></span>
                     <span id="connection-text">Offline</span>
@@ -977,42 +993,60 @@
     <!-- JavaScript -->
     <script src="app.js"></script>
     <script>
-        // Handle PNG button sizing and fallback
+        // Handle PNG button replacement and fallback
         document.addEventListener('DOMContentLoaded', function() {
-            const buttons = document.querySelectorAll('.header-controls .btn');
+            const buttonContainers = document.querySelectorAll('.button-container');
             
-            buttons.forEach(button => {
-                const img = button.querySelector('.btn-icon');
-                const fallback = button.querySelector('.btn-fallback');
+            buttonContainers.forEach(container => {
+                const pngImg = container.querySelector('.btn-png');
+                const fallbackBtn = container.querySelector('.btn-fallback');
+                const buttonId = container.getAttribute('data-button-id');
                 
-                if (img) {
-                    // Add class for PNG button styling
-                    button.classList.add('btn-with-png');
-                    
-                    // Handle image load success
-                    img.addEventListener('load', function() {
-                        button.classList.add('btn-png-loaded');
-                        fallback.style.display = 'none';
+                if (pngImg && fallbackBtn) {
+                    // Handle PNG image load success
+                    pngImg.addEventListener('load', function() {
+                        // Hide fallback button when PNG loads successfully
+                        fallbackBtn.style.display = 'none';
+                        pngImg.style.display = 'block';
+                        
+                        // Add click event to PNG image
+                        pngImg.addEventListener('click', function() {
+                            // Trigger the same event as the fallback button
+                            const clickEvent = new MouseEvent('click', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                            });
+                            fallbackBtn.dispatchEvent(clickEvent);
+                        });
                     });
                     
-                    // Handle image load error
-                    img.addEventListener('error', function() {
-                        button.classList.remove('btn-with-png');
-                        button.classList.add('btn-fallback-mode');
+                    // Handle PNG image load error
+                    pngImg.addEventListener('error', function() {
+                        // Show fallback button when PNG fails to load
                         this.style.display = 'none';
-                        fallback.style.display = 'inline';
+                        fallbackBtn.style.display = 'flex';
                     });
                     
                     // Check if image is already loaded
-                    if (img.complete && img.naturalHeight !== 0) {
-                        button.classList.add('btn-png-loaded');
-                        fallback.style.display = 'none';
-                    } else if (img.complete) {
-                        // Image failed to load
-                        button.classList.remove('btn-with-png');
-                        button.classList.add('btn-fallback-mode');
-                        img.style.display = 'none';
-                        fallback.style.display = 'inline';
+                    if (pngImg.complete && pngImg.naturalHeight !== 0) {
+                        // PNG loaded successfully
+                        fallbackBtn.style.display = 'none';
+                        pngImg.style.display = 'block';
+                        
+                        // Add click event to PNG image
+                        pngImg.addEventListener('click', function() {
+                            const clickEvent = new MouseEvent('click', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                            });
+                            fallbackBtn.dispatchEvent(clickEvent);
+                        });
+                    } else if (pngImg.complete) {
+                        // PNG failed to load
+                        pngImg.style.display = 'none';
+                        fallbackBtn.style.display = 'flex';
                     }
                 }
             });

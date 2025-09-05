@@ -15,10 +15,11 @@ This directory contains PNG images for the toolbar buttons. If these images are 
 
 ## Image Specifications:
 
-- **Size**: 16x16 pixels (recommended)
+- **Size**: Portrait orientation (recommended: 120-160px height, 80-120px width)
 - **Format**: PNG with transparency
 - **Style**: Should match the overall theme aesthetic
 - **Background**: Transparent or matching button background
+- **Orientation**: Portrait (taller than wide) - images will completely replace buttons
 
 ## Fallback Behavior:
 
