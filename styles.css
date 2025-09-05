@@ -121,6 +121,42 @@ body {
     margin-right: var(--spacing-lg);
 }
 
+/* Logo PNG Styles - Three times wider than other buttons */
+.logo-png {
+    width: auto;
+    height: 120px;
+    max-width: 360px;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-gold);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    object-fit: contain;
+    display: block;
+}
+
+.logo-png:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--gold-primary);
+}
+
+.logo-png:active {
+    transform: translateY(0);
+}
+
+/* Logo text fallback - Hidden when PNG is available */
+.logo-text {
+    display: none;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* Show logo text when PNG fails to load */
+.logo-png[style*="display: none"] + .logo-text {
+    display: flex !important;
+}
+
 .logo i {
     font-size: 2rem;
     color: var(--gold-primary);

@@ -4,6 +4,7 @@ This directory contains PNG images for the toolbar buttons. If these images are 
 
 ## Expected Image Files:
 
+- `logo.png` - Main application logo (replaces "ATB Auto Trading Bot v3" text)
 - `digital-account.png` - Digital Account button icon
 - `digital-bank.png` - Digital Bank button icon  
 - `digital-currency.png` - Digital Currency button icon
@@ -15,6 +16,14 @@ This directory contains PNG images for the toolbar buttons. If these images are 
 
 ## Image Specifications:
 
+### Logo Image (logo.png)
+- **Size**: 120px height, max 360px width (3x wider than other buttons)
+- **Format**: PNG with transparency
+- **Style**: Should represent the ATB brand and application
+- **Background**: Transparent or matching theme background
+- **Orientation**: Landscape (wider than tall) - replaces logo text
+
+### Button Images
 - **Size**: Portrait orientation (recommended: 120-160px height, 80-120px width)
 - **Format**: PNG with transparency
 - **Style**: Should match the overall theme aesthetic

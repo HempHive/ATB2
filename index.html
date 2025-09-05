@@ -23,8 +23,11 @@
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <i class="fas fa-robot"></i>
-                <h1>ATB Auto Trading Bot v3 🐶</h1>
+                <img src="images/logo.png" alt="ATB Auto Trading Bot v3" class="logo-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="logo-text">
+                    <i class="fas fa-robot"></i>
+                    <h1>ATB Auto Trading Bot v3 🐶</h1>
+                </div>
             </div>
             <div class="header-controls">
                 <div class="button-container" data-button-id="digital-account">
@@ -993,6 +996,38 @@
     <script>
         // Handle PNG button replacement and fallback
         document.addEventListener('DOMContentLoaded', function() {
+            // Handle logo PNG
+            const logoPng = document.querySelector('.logo-png');
+            const logoText = document.querySelector('.logo-text');
+            
+            if (logoPng && logoText) {
+                // Handle logo PNG load success
+                logoPng.addEventListener('load', function() {
+                    // Hide logo text when PNG loads successfully
+                    logoText.style.display = 'none';
+                    logoPng.style.display = 'block';
+                });
+                
+                // Handle logo PNG load error
+                logoPng.addEventListener('error', function() {
+                    // Show logo text when PNG fails to load
+                    this.style.display = 'none';
+                    logoText.style.display = 'flex';
+                });
+                
+                // Check if logo image is already loaded
+                if (logoPng.complete && logoPng.naturalHeight !== 0) {
+                    // Logo PNG loaded successfully
+                    logoText.style.display = 'none';
+                    logoPng.style.display = 'block';
+                } else if (logoPng.complete) {
+                    // Logo PNG failed to load
+                    logoPng.style.display = 'none';
+                    logoText.style.display = 'flex';
+                }
+            }
+            
+            // Handle button PNGs
             const buttonContainers = document.querySelectorAll('.button-container');
             
             buttonContainers.forEach(container => {
