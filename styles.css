@@ -743,6 +743,7 @@ body {
     align-items: center;
     max-width: 1400px;
     margin: 0 auto;
+    gap: var(--spacing-lg);
 }
 
 .footer-info {
@@ -751,6 +752,29 @@ body {
     gap: var(--spacing-md);
     color: var(--text-muted);
     font-size: 0.9rem;
+}
+
+.footer-ticker {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 var(--spacing-lg);
+}
+
+.footer-ticker .ticker-container {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-primary);
+    overflow: hidden;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.footer-ticker .ticker-scroll {
+    display: flex;
+    animation: scrollSeamless 30s linear infinite;
+    white-space: nowrap;
+    align-items: center;
 }
 
 .footer-actions {
