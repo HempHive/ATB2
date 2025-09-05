@@ -169,6 +169,10 @@ body {
     flex-wrap: wrap;
     min-width: 0;
     flex: 1;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 0;
+    align-content: flex-start;
 }
 
 .logo i {
@@ -197,19 +201,17 @@ body {
 /* Button Container Styles */
 .button-container {
     position: relative;
-    display: inline-block;
+    display: flex;
     margin: 0;
     padding: 0;
     flex: 1;
     min-width: 0;
-    max-width: 240px;
 }
 
 /* PNG Button Styles - Completely replaces the button */
 .btn-png {
     width: 100%;
     height: auto;
-    max-height: 120px;
     cursor: pointer;
     border-radius: var(--radius-md);
     border: 2px solid var(--border-gold);
@@ -281,6 +283,37 @@ body {
     gap: var(--spacing-sm);
     font-size: 0.9rem;
     margin-left: var(--spacing-lg);
+}
+
+/* Status PNG Styles */
+.status-png {
+    width: auto;
+    height: 24px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-gold);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    object-fit: contain;
+    display: block;
+}
+
+.status-png:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold-primary);
+}
+
+/* Status fallback - Hidden when PNG is available */
+.status-fallback {
+    display: none;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Show status fallback when PNG fails to load */
+.status-png[style*="display: none"] + .status-fallback {
+    display: flex !important;
 }
 
 .status-indicator {

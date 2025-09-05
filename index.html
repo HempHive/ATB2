@@ -79,8 +79,11 @@
                     </button>
                 </div>
                 <div class="connection-status">
-                    <span id="connection-indicator" class="status-indicator offline"></span>
-                    <span id="connection-text">Offline</span>
+                    <img src="images/status-online.png" alt="Online" class="status-png" id="status-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="status-fallback" id="status-fallback">
+                        <span id="connection-indicator" class="status-indicator offline"></span>
+                        <span id="connection-text">❌</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1025,6 +1028,53 @@
                     logoPng.style.display = 'none';
                     logoText.style.display = 'flex';
                 }
+            }
+            
+            // Handle status PNG
+            const statusPng = document.querySelector('.status-png');
+            const statusFallback = document.querySelector('.status-fallback');
+            const connectionText = document.querySelector('#connection-text');
+            
+            if (statusPng && statusFallback && connectionText) {
+                // Handle status PNG load success
+                statusPng.addEventListener('load', function() {
+                    // Hide status fallback when PNG loads successfully
+                    statusFallback.style.display = 'none';
+                    statusPng.style.display = 'block';
+                });
+                
+                // Handle status PNG load error
+                statusPng.addEventListener('error', function() {
+                    // Show status fallback when PNG fails to load
+                    this.style.display = 'none';
+                    statusFallback.style.display = 'flex';
+                });
+                
+                // Check if status image is already loaded
+                if (statusPng.complete && statusPng.naturalHeight !== 0) {
+                    // Status PNG loaded successfully
+                    statusFallback.style.display = 'none';
+                    statusPng.style.display = 'block';
+                } else if (statusPng.complete) {
+                    // Status PNG failed to load
+                    statusPng.style.display = 'none';
+                    statusFallback.style.display = 'flex';
+                }
+                
+                // Function to update status
+                function updateStatus(isOnline) {
+                    if (statusPng.style.display !== 'none') {
+                        // PNG is visible, update the PNG source
+                        statusPng.src = isOnline ? 'images/status-online.png' : 'images/status-offline.png';
+                        statusPng.alt = isOnline ? 'Online' : 'Offline';
+                    } else {
+                        // Fallback is visible, update the emoji
+                        connectionText.textContent = isOnline ? '💚' : '❌';
+                    }
+                }
+                
+                // Expose updateStatus function globally for use by other scripts
+                window.updateConnectionStatus = updateStatus;
             }
             
             // Handle button PNGs

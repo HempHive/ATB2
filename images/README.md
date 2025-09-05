@@ -5,6 +5,8 @@ This directory contains PNG images for the toolbar buttons. If these images are 
 ## Expected Image Files:
 
 - `logo.png` - Main application logo (replaces "ATB Auto Trading Bot v3" text)
+- `status-online.png` - Online status indicator (replaces "💚" emoji)
+- `status-offline.png` - Offline status indicator (replaces "❌" emoji)
 - `digital-account.png` - Digital Account button icon
 - `digital-bank.png` - Digital Bank button icon  
 - `digital-currency.png` - Digital Currency button icon
@@ -22,6 +24,13 @@ This directory contains PNG images for the toolbar buttons. If these images are 
 - **Style**: Should represent the ATB brand and application
 - **Background**: Transparent or matching theme background
 - **Orientation**: Landscape (wider than tall) - replaces logo text
+
+### Status Images (status-online.png, status-offline.png)
+- **Size**: 24px height, auto width (compact status indicator)
+- **Format**: PNG with transparency
+- **Style**: Should clearly indicate online/offline state
+- **Background**: Transparent or matching theme background
+- **Orientation**: Square or landscape - replaces emoji status
 
 ### Button Images
 - **Size**: Portrait orientation (recommended: 120-160px height, 80-120px width)
