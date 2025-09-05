@@ -145,11 +145,13 @@ body {
 
 /* Button Icon Styles */
 .btn-icon {
-    width: 16px;
-    height: 16px;
+    width: auto;
+    height: 20px;
+    max-width: 24px;
     margin-right: var(--spacing-xs);
     vertical-align: middle;
     display: inline-block;
+    object-fit: contain;
 }
 
 .btn-fallback {
@@ -160,6 +162,37 @@ body {
 /* When PNG image fails to load, show the fallback icon */
 .btn-icon[style*="display: none"] + .btn-fallback {
     display: inline !important;
+}
+
+/* Button sizing adjustments for PNG images */
+.header-controls .btn {
+    min-height: 40px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+/* When button contains a PNG image, adjust sizing */
+.header-controls .btn:has(.btn-icon:not([style*="display: none"])) {
+    min-height: 48px;
+    padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+/* Ensure text doesn't wrap when PNG is present */
+.header-controls .btn:has(.btn-icon:not([style*="display: none"])) .btn-text {
+    white-space: nowrap;
+}
+
+/* Fallback for browsers that don't support :has() */
+.header-controls .btn.btn-with-png {
+    min-height: 48px;
+    padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+.header-controls .btn.btn-with-png .btn-text {
+    white-space: nowrap;
 }
 
 .theme-toggle {
