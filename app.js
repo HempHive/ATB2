@@ -716,7 +716,7 @@ class ATBDashboard {
             // Clear market display when no bot is selected
             const marketDisplay = document.getElementById('market-display');
             if (marketDisplay) {
-                marketDisplay.textContent = 'Select a market to view';
+                marketDisplay.textContent = 'Select a market or bot to view';
             }
             return;
         }
@@ -732,12 +732,12 @@ class ATBDashboard {
         const botConfigEl = document.getElementById('bot-config');
         if (botConfigEl) botConfigEl.style.display = 'block';
         
-        // Update market display to show bot's asset
+        // Update market display to show selected bot and its market
         const marketDisplay = document.getElementById('market-display');
         if (marketDisplay) {
             // Get the market name from the asset symbol
             const marketName = this.getMarketNameFromSymbol(bot.asset);
-            marketDisplay.textContent = `${marketName} (${bot.asset})`;
+            marketDisplay.textContent = `Bot: ${bot.name} - ${marketName} (${bot.asset})`;
         }
         
         // Set current market display for chart
@@ -750,12 +750,7 @@ class ATBDashboard {
         // Update chart with bot's market data
         this.updateChartForSelectedBot();
         
-        // Update bot stats badge in graph header
-        const allocation = this.botAllocations[botId] || 0;
-        const pnlPercent = (Math.random() - 0.5) * 10; // placeholder; replace with real calc
-        const arrow = pnlPercent > 0 ? '▲' : (pnlPercent < 0 ? '▼' : '•');
-        const statsEl = document.getElementById('bot-stats-display');
-        if (statsEl) statsEl.innerHTML = `${bot.name}: $${allocation.toFixed(2)} <span style="color:${pnlPercent>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pnlPercent).toFixed(1)}%</span>`;
+        // Bot stats are now shown in the unified market display above
         
         this.addAlert('info', 'Bot Selected', `Selected ${bot.name} for ${bot.asset}`);
     }
@@ -1143,8 +1138,7 @@ class ATBDashboard {
         const baseline = Math.max(allocation, 1e-9);
         const pct = ((total - allocation) / baseline) * 100;
         const arrow = pct > 0 ? '▲' : (pct < 0 ? '▼' : '•');
-        const statsEl = document.getElementById('bot-stats-display');
-        if (statsEl) statsEl.innerHTML = `${bot.name}: $${total.toFixed(2)} <span style="color:${pct>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
+        // Bot stats are now shown in the unified market display
     }
 
     persistBotState() {
@@ -2930,10 +2924,10 @@ class ATBDashboard {
         // Set current market display for chart
         this.currentMarketDisplay = this.selectedMarket;
         
-        // Update the "Current Market" header
+        // Update the "Selected" display to show market
         const marketDisplay = document.getElementById('market-display');
         if (marketDisplay) {
-            marketDisplay.textContent = `${name} (${symbol})`;
+            marketDisplay.textContent = `Market: ${name} (${symbol})`;
         }
         
         // Enable buttons
@@ -3071,7 +3065,7 @@ class ATBDashboard {
         // Update market display
         this.currentMarketDisplay = this.selectedMarket;
         document.getElementById('market-display').textContent = 
-            `${this.selectedMarket.name} (${this.selectedMarket.symbol})`;
+            `Market: ${this.selectedMarket.name} (${this.selectedMarket.symbol})`;
         
         // Simulate loading delay for better UX
         setTimeout(() => {

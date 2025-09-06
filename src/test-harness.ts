@@ -170,22 +170,21 @@ export class ATB2TestHarness {
      * Update UI based on state
      */
     private updateUI(state: any): void {
-        // Update market display
-        if (state.selectedMarket) {
-            const marketDisplay = document.getElementById('market-display');
-            if (marketDisplay) {
-                marketDisplay.textContent = `${state.selectedMarket.name} (${state.selectedMarket.symbol})`;
-            }
-        }
-
-        // Update bot display
-        if (state.selectedBot) {
-            const botStatsDisplay = document.getElementById('bot-stats-display');
-            if (botStatsDisplay) {
+        // Update unified market display
+        const marketDisplay = document.getElementById('market-display');
+        if (marketDisplay) {
+            if (state.selectedBot) {
+                // Show bot and its market
                 const botConfig = state.botConfigs[state.selectedBot];
                 if (botConfig) {
-                    botStatsDisplay.textContent = botConfig.name;
+                    marketDisplay.textContent = `Bot: ${botConfig.name} - ${botConfig.asset}`;
                 }
+            } else if (state.selectedMarket) {
+                // Show market only
+                marketDisplay.textContent = `Market: ${state.selectedMarket.name} (${state.selectedMarket.symbol})`;
+            } else {
+                // Show default message
+                marketDisplay.textContent = 'Select a market or bot to view';
             }
         }
 
