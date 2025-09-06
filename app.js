@@ -2961,7 +2961,8 @@ class ATBDashboard {
             if (data && data.length > 0) {
                 const labels = data.map(d => {
                     const date = new Date(d.time);
-                    return date.toLocaleString();
+                    // Use time format for daily data to avoid showing dates
+                    return date.toLocaleTimeString();
                 });
                 const prices = data.map(d => d.price);
                 
@@ -3031,7 +3032,20 @@ class ATBDashboard {
             if (data && data.length > 0) {
                 const labels = data.map(d => {
                     const date = new Date(d.time);
-                    return date.toLocaleString();
+                    switch(timeframe) {
+                        case '1m': return date.toLocaleTimeString();
+                        case '5m': return date.toLocaleTimeString();
+                        case '15m': return date.toLocaleTimeString();
+                        case '1h': return date.toLocaleTimeString();
+                        case '4h': return date.toLocaleTimeString();
+                        case '1d': return date.toLocaleDateString();
+                        case '1w': return date.toLocaleDateString();
+                        case '1M': return date.toLocaleDateString();
+                        case '3M': return date.toLocaleDateString();
+                        case '6M': return date.toLocaleDateString();
+                        case '1y': return date.toLocaleDateString();
+                        default: return date.toLocaleString();
+                    }
                 });
                 const prices = data.map(d => d.price);
                 
