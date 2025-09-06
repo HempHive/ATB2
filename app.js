@@ -2781,17 +2781,17 @@ class ATBDashboard {
         let intervalMs = 60000; // 1 minute default
         
         switch(timeframe) {
-            case '1m': dataPoints = 60; intervalMs = 60000; break;
-            case '5m': dataPoints = 60; intervalMs = 300000; break;
-            case '15m': dataPoints = 60; intervalMs = 900000; break;
-            case '1h': dataPoints = 24; intervalMs = 3600000; break;
-            case '4h': dataPoints = 24; intervalMs = 14400000; break;
-            case '1d': dataPoints = 30; intervalMs = 86400000; break;
-            case '1w': dataPoints = 28; intervalMs = 604800000; break;
-            case '1M': dataPoints = 30; intervalMs = 2592000000; break;
-            case '3M': dataPoints = 90; intervalMs = 7776000000; break;
-            case '6M': dataPoints = 180; intervalMs = 15552000000; break;
-            case '1y': dataPoints = 365; intervalMs = 31536000000; break;
+            case '1m': dataPoints = 60; intervalMs = 60000; break; // 60 points × 1 min = 1 hour
+            case '5m': dataPoints = 12; intervalMs = 300000; break; // 12 points × 5 min = 1 hour
+            case '15m': dataPoints = 4; intervalMs = 900000; break; // 4 points × 15 min = 1 hour
+            case '1h': dataPoints = 24; intervalMs = 3600000; break; // 24 points × 1 hour = 1 day
+            case '4h': dataPoints = 6; intervalMs = 14400000; break; // 6 points × 4 hours = 1 day
+            case '1d': dataPoints = 7; intervalMs = 86400000; break; // 7 points × 1 day = 1 week
+            case '1w': dataPoints = 4; intervalMs = 604800000; break; // 4 points × 1 week = 1 month
+            case '1M': dataPoints = 12; intervalMs = 2592000000; break; // 12 points × 1 month = 1 year
+            case '3M': dataPoints = 4; intervalMs = 7776000000; break; // 4 points × 3 months = 1 year
+            case '6M': dataPoints = 2; intervalMs = 15552000000; break; // 2 points × 6 months = 1 year
+            case '1y': dataPoints = 1; intervalMs = 31536000000; break; // 1 point × 1 year = 1 year
         }
         
         for (let i = dataPoints - 1; i >= 0; i--) {
