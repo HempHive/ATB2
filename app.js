@@ -25,6 +25,7 @@ class ATBDashboard {
             { id: 'bank_3', name: 'Crypto-currency', ref: 'CRY-001', qty: 3, value: 15000 }
         ];
         this.currentTimeframe = '1h';
+        this.userSelectedTimeframe = false; // Flag to track user selection
         this.graphColor = '#ffd700';
         this.investments = [];
         this.marketData = {};
@@ -141,8 +142,6 @@ class ATBDashboard {
         if (maxPositionsInput) maxPositionsInput.addEventListener('change', (e) => this.updateRiskConfig('maxPositions', parseInt(e.target.value)));
         
         // Graph controls
-        const toggleHistoricalBtn = document.getElementById('toggle-historical');
-        if (toggleHistoricalBtn) toggleHistoricalBtn.addEventListener('click', () => this.toggleHistoricalView());
         
         const timeframeSelectorEl = document.getElementById('timeframe-selector');
         if (timeframeSelectorEl) timeframeSelectorEl.addEventListener('change', (e) => this.updateTimeframe(e.target.value));
@@ -351,6 +350,18 @@ class ATBDashboard {
     initializeChart() {
         const ctx = document.getElementById('market-chart').getContext('2d');
         
+        // Destroy any existing chart on this canvas
+        if (window.chart) {
+            window.chart.destroy();
+        }
+        
+        // Also check for any Chart instances that might be using this canvas
+        Chart.helpers.each(Chart.instances, (chart) => {
+            if (chart.canvas.id === 'market-chart') {
+                chart.destroy();
+            }
+        });
+        
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -386,6 +397,16 @@ class ATBDashboard {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // Disable all animations
+                },
+                transitions: {
+                    active: {
+                        animation: {
+                            duration: 0
+                        }
+                    }
+                },
                 plugins: {
                     legend: {
                         labels: {
@@ -538,7 +559,10 @@ class ATBDashboard {
     startDataUpdates() {
         // Update market data every 5 seconds
         this.updateInterval = setInterval(() => {
-            this.updateMarketData();
+            // Only update if no specific timeframe is selected
+            if (!this.userSelectedTimeframe || this.currentTimeframe === '1d') {
+                this.updateMarketData();
+            }
             this.updateTicker();
             this.updateStats();
         }, 5000);
@@ -548,9 +572,11 @@ class ATBDashboard {
             this.updateTicker();
         }, 30000);
         
-        // Update market prices every 2 seconds
+        // Update market prices every 2 seconds - but only if no specific timeframe is selected
         this.marketPriceInterval = setInterval(() => {
-            this.updateMarketPrices();
+            if (!this.userSelectedTimeframe || this.currentTimeframe === '1d') {
+                this.updateMarketPrices();
+            }
         }, 2000);
     }
     
@@ -572,7 +598,8 @@ class ATBDashboard {
             }
         });
         
-        if (this.currentBot) {
+        // Only update chart if no specific timeframe is selected (to avoid conflicts)
+        if (this.currentBot && (!this.userSelectedTimeframe || this.currentTimeframe === '1d')) {
             this.updateChart();
         }
     }
@@ -581,9 +608,26 @@ class ATBDashboard {
         if (!this.currentBot || !this.chart) return;
         
         const asset = this.bots[this.currentBot].asset;
+        
+        // If a specific timeframe is selected, use that instead of default market data
+        if (this.currentTimeframe && this.currentTimeframe !== '1d') {
+            this.updateChartForTimeframe(this.currentTimeframe);
+            return;
+        }
+        
         const data = this.marketData[asset];
         
         if (!data) return;
+        
+        // Check if chart data is already up to date
+        const currentDataLength = this.chart.data.datasets[0]?.data?.length || 0;
+        if (currentDataLength === data.length && this.chart.data.labels.length > 0) {
+            // Data is already up to date, only update if there are new trades
+            const stored = this.botTrades[this.currentBot] || [];
+            if (stored.length === 0) {
+                return; // No new trades, no need to update
+            }
+        }
         
         const labels = data.map(d => new Date(d.time).toLocaleTimeString());
         const prices = data.map(d => d.price);
@@ -820,27 +864,45 @@ class ATBDashboard {
         this.addAlert('info', 'Risk Settings Updated', `${key} set to ${value}`);
     }
     
-    toggleHistoricalView() {
-        const btn = document.getElementById('toggle-historical');
-        const isHistorical = btn.classList.contains('active');
-        
-        if (isHistorical) {
-            btn.classList.remove('active');
-            btn.innerHTML = '<i class="fas fa-history"></i> Historical View';
-        } else {
-            btn.classList.add('active');
-            btn.innerHTML = '<i class="fas fa-chart-line"></i> Live View';
-        }
-        
-        this.addAlert('info', 'View Mode Changed', isHistorical ? 'Switched to live view' : 'Switched to historical view');
-    }
-    
     updateTimeframe(timeframe) {
         this.currentTimeframe = timeframe;
+        this.userSelectedTimeframe = true; // Mark as user-selected
         this.addAlert('info', 'Timeframe Updated', `Chart timeframe set to ${timeframe}`);
+        
+        // Update the dropdown value to reflect the selection
+        const timeframeSelector = document.getElementById('timeframe-selector');
+        if (timeframeSelector) {
+            timeframeSelector.value = timeframe;
+        }
+        
+        // Stop all automatic updates when user selects a specific timeframe
+        this.stopAutomaticUpdates();
         
         // Update chart with new timeframe data
         this.updateChartForTimeframe(timeframe);
+    }
+    
+    stopAutomaticUpdates() {
+        // Clear all intervals to prevent any automatic updates
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+        if (this.tickerInterval) {
+            clearInterval(this.tickerInterval);
+            this.tickerInterval = null;
+        }
+        if (this.marketPriceInterval) {
+            clearInterval(this.marketPriceInterval);
+            this.marketPriceInterval = null;
+        }
+    }
+    
+    resumeAutomaticUpdates() {
+        // Only resume if no specific timeframe is selected
+        if (!this.userSelectedTimeframe || this.currentTimeframe === '1d') {
+            this.startDataUpdates();
+        }
     }
     
     toggleSimulationMode() {
@@ -1020,6 +1082,25 @@ class ATBDashboard {
         this.renderActiveBots();
         this.updateAccountUI();
         this.renderBankAssets();
+        
+        // Auto-select the last bot (Ethereum) by default if no bot is selected
+        if (!this.currentBot) {
+            const lastBotId = 'bot7'; // Ethereum bot
+            if (this.bots[lastBotId]) {
+                this.selectBot(lastBotId);
+                // Update the bot selector dropdown to reflect the selection
+                const botSelector = document.getElementById('bot-selector');
+                if (botSelector) {
+                    botSelector.value = lastBotId;
+                }
+            }
+        }
+        
+        // Ensure timeframe dropdown reflects the default 1h selection
+        const timeframeSelector = document.getElementById('timeframe-selector');
+        if (timeframeSelector && this.currentTimeframe) {
+            timeframeSelector.value = this.currentTimeframe;
+        }
         
         // Update last update time every second
         setInterval(() => {
@@ -2631,7 +2712,17 @@ class ATBDashboard {
     
     // Update chart for timeframe
     updateChartForTimeframe(timeframe) {
-        if (!this.currentMarketDisplay || !this.chart) return;
+        if (!this.currentBot || !this.chart) return;
+        
+        // Check if chart already shows this timeframe
+        const currentLabel = this.chart.data.datasets[0]?.label || '';
+        const expectedLabel = `${this.bots[this.currentBot].asset} Price (${timeframe})`;
+        
+        // If chart already shows the correct timeframe, don't reload
+        if (currentLabel === expectedLabel && this.chart.data.labels.length > 0) {
+            console.log('Chart already shows correct timeframe, skipping reload');
+            return;
+        }
         
         // Show loading indicator
         this.showChartLoading();
@@ -2639,7 +2730,8 @@ class ATBDashboard {
         // Simulate loading delay for better UX
         setTimeout(() => {
             // Generate data for the selected timeframe
-            const symbol = this.currentMarketDisplay.symbol;
+            const bot = this.bots[this.currentBot];
+            const symbol = bot.asset;
             const data = this.generateDataForTimeframe(symbol, timeframe);
             
             if (data && data.length > 0) {
@@ -2918,12 +3010,23 @@ class ATBDashboard {
         const bot = this.bots[this.currentBot];
         const symbol = bot.asset;
         
+        // Check if chart already shows this symbol and timeframe
+        const currentLabel = this.chart.data.datasets[0]?.label || '';
+        const expectedLabel = `${symbol} Price (${this.currentTimeframe || '1h'})`;
+        
+        // If chart already shows the correct data, don't reload
+        if (currentLabel === expectedLabel && this.chart.data.labels.length > 0) {
+            console.log('Chart already shows correct data, skipping reload');
+            return;
+        }
+        
         // Show loading indicator
         this.showChartLoading();
         
         // Simulate loading delay for better UX
         setTimeout(() => {
-            const data = this.generateDataForTimeframe(symbol, '1d');
+            const timeframe = this.currentTimeframe || '1h';
+            const data = this.generateDataForTimeframe(symbol, timeframe);
             
             if (data && data.length > 0) {
                 const labels = data.map(d => {
@@ -2934,7 +3037,7 @@ class ATBDashboard {
                 
                 this.chart.data.labels = labels;
                 this.chart.data.datasets[0].data = prices;
-                this.chart.data.datasets[0].label = `${symbol} Price`;
+                this.chart.data.datasets[0].label = `${symbol} Price (${timeframe})`;
                 this.chart.update('none');
             }
             
@@ -3115,7 +3218,13 @@ window.ATBDashboard = ATBDashboard;
 
 // Initialize the dashboard when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    window.atbDashboard = new ATBDashboard();
+    try {
+        console.log('🚀 Initializing ATBDashboard...');
+        window.atbDashboard = new ATBDashboard();
+        console.log('✅ ATBDashboard initialized successfully');
+    } catch (error) {
+        console.error('❌ Error initializing ATBDashboard:', error);
+    }
 });
 
 // Handle page visibility changes
