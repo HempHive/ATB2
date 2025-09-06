@@ -231,7 +231,7 @@ body {
     transform: translateY(0);
 }
 
-/* Fallback Button Styles - Hidden when PNG is available */
+/* Fallback Button Styles - Hidden by default */
 .btn-fallback {
     display: none;
     min-height: 40px;
@@ -241,9 +241,21 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Show fallback button when PNG fails to load */
+/* PNG images - visible by default */
+.btn-png {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Show fallback when PNG fails to load (onerror sets display:none) */
 .btn-png[style*="display: none"] + .btn-fallback {
     display: flex !important;
+}
+
+/* Hide PNG when it fails to load */
+.btn-png[style*="display: none"] {
+    display: none !important;
 }
 
 /* Header controls layout */
@@ -285,10 +297,10 @@ body {
     margin-left: var(--spacing-lg);
 }
 
-/* Status PNG Styles */
+/* Status PNG Styles - Integrated with button container system */
 .status-png {
     width: auto;
-    height: 24px;
+    height: 40px; /* Same height as other buttons */
     cursor: pointer;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-gold);
@@ -304,11 +316,14 @@ body {
     border-color: var(--gold-primary);
 }
 
-/* Status fallback - Hidden when PNG is available */
+/* Status fallback - Uses the same system as other buttons */
 .status-fallback {
     display: none;
     align-items: center;
     gap: var(--spacing-sm);
+    min-height: 40px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    justify-content: center;
 }
 
 /* Show status fallback when PNG fails to load */
@@ -658,51 +673,169 @@ body {
 
 /* Active Bots */
 .active-bots {
-    background: linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-primary);
+    margin-bottom: var(--spacing-md);
 }
 
-.active-bots-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-}
-
-.active-bot-btn {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
+.active-bots h3 {
+    margin: 0 0 var(--spacing-sm) 0;
     color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
     align-items: center;
     gap: var(--spacing-xs);
 }
+
+.active-bots-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 80px);
+    gap: var(--spacing-xs);
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 2px;
+    justify-content: start;
+}
+
+.active-bot-btn {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    width: 80px;
+    height: 80px;
+    min-height: 80px;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1;
+}
+
+.active-bot-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.active-bot-btn:hover::before {
+    left: 100%;
+}
+
+.active-bot-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.active-bot-btn:hover {
+    background: linear-gradient(135deg, var(--bg-hover) 0%, var(--gold-primary) 20%, var(--bg-hover) 100%);
+    border-color: var(--gold-primary);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.active-bot-btn .bot-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.active-bot-btn .bot-asset {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.active-bot-btn .bot-status {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.65rem;
+    margin-top: 2px;
+}
+
+.active-bot-btn .bot-pnl {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.active-bot-btn .bot-pnl.positive {
+    color: var(--success);
+}
+
+.active-bot-btn .bot-pnl.negative {
+    color: var(--danger);
+}
+
+.active-bot-btn .bot-pnl.neutral {
+    color: var(--text-secondary);
+}
 .status-dot {
-    width: 10px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     display: inline-block;
 }
 
 .status-dot.online {
-    background-color: var(--success);
-    box-shadow: 0 0 6px var(--success);
+    background: var(--success);
+    box-shadow: 0 0 4px var(--success);
 }
 
 .status-dot.offline {
-    background-color: var(--danger);
-    box-shadow: 0 0 6px var(--danger);
+    background: var(--danger);
+    box-shadow: 0 0 4px var(--danger);
 }
 
-.active-bot-btn:hover {
-    background: var(--bg-hover);
-    border-color: var(--gold-primary);
+/* Responsive adjustments for Active Bots */
+@media (max-width: 768px) {
+    .active-bots-container {
+        grid-template-columns: repeat(auto-fill, 70px);
+        gap: var(--spacing-xs);
+    }
+    
+    .active-bot-btn {
+        width: 70px;
+        height: 70px;
+        min-height: 70px;
+        padding: var(--spacing-xs);
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .active-bots-container {
+        grid-template-columns: repeat(auto-fill, 60px);
+        gap: var(--spacing-xs);
+    }
+    
+    .active-bot-btn {
+        width: 60px;
+        height: 60px;
+        min-height: 60px;
+        font-size: 0.65rem;
+    }
 }
 
 .stats-grid {

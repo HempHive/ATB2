@@ -78,12 +78,12 @@
                         <i class="fas fa-moon"></i>
                     </button>
                 </div>
-                <div class="connection-status">
-                    <img src="images/status-online.png" alt="Online" class="status-png" id="status-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="status-fallback" id="status-fallback">
+                <div class="button-container" data-button-id="connection-status">
+                    <img src="images/status-online.png" alt="Online" class="btn-png status-png" id="status-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <button id="connection-status" class="btn btn-secondary btn-fallback">
                         <span id="connection-indicator" class="status-indicator offline"></span>
                         <span id="connection-text">❌</span>
-                    </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -996,6 +996,9 @@
 
     <!-- JavaScript -->
     <script src="app.js"></script>
+    
+    <!-- Test Harness (for development/testing) -->
+    <script type="module" src="src/test-harness.ts"></script>
     <script>
         // Handle PNG button replacement and fallback
         document.addEventListener('DOMContentLoaded', function() {
@@ -1063,18 +1066,76 @@
                 
                 // Function to update status
                 function updateStatus(isOnline) {
-                    if (statusPng.style.display !== 'none') {
-                        // PNG is visible, update the PNG source
+                    const statusPng = document.getElementById('status-png');
+                    const connectionText = document.getElementById('connection-text');
+                    const statusIndicator = document.getElementById('connection-indicator');
+                    
+                    if (statusPng) {
+                        // Always try to update the PNG source first
                         statusPng.src = isOnline ? 'images/status-online.png' : 'images/status-offline.png';
                         statusPng.alt = isOnline ? 'Online' : 'Offline';
-                    } else {
-                        // Fallback is visible, update the emoji
+                        
+                        // Add load event listener to show PNG when it loads
+                        statusPng.onload = function() {
+                            this.style.display = 'block';
+                            const fallback = document.getElementById('connection-status');
+                            if (fallback) fallback.style.display = 'none';
+                        };
+                        
+                        // Add error event listener to show fallback when PNG fails
+                        statusPng.onerror = function() {
+                            this.style.display = 'none';
+                            const fallback = document.getElementById('connection-status');
+                            if (fallback) fallback.style.display = 'flex';
+                        };
+                    }
+                    
+                    // Always update the fallback as well (in case PNG fails)
+                    if (connectionText) {
                         connectionText.textContent = isOnline ? '💚' : '❌';
+                    }
+                    if (statusIndicator) {
+                        statusIndicator.className = isOnline ? 'status-indicator online' : 'status-indicator offline';
                     }
                 }
                 
                 // Expose updateStatus function globally for use by other scripts
                 window.updateConnectionStatus = updateStatus;
+            } else {
+                // Create a fallback function even if elements don't exist
+                window.updateConnectionStatus = function(isOnline) {
+                    const statusPng = document.getElementById('status-png');
+                    const connectionText = document.getElementById('connection-text');
+                    const statusIndicator = document.getElementById('connection-indicator');
+                    
+                    if (statusPng) {
+                        // Always try to update the PNG source first
+                        statusPng.src = isOnline ? 'images/status-online.png' : 'images/status-offline.png';
+                        statusPng.alt = isOnline ? 'Online' : 'Offline';
+                        
+                        // Add load event listener to show PNG when it loads
+                        statusPng.onload = function() {
+                            this.style.display = 'block';
+                            const fallback = document.getElementById('connection-status');
+                            if (fallback) fallback.style.display = 'none';
+                        };
+                        
+                        // Add error event listener to show fallback when PNG fails
+                        statusPng.onerror = function() {
+                            this.style.display = 'none';
+                            const fallback = document.getElementById('connection-status');
+                            if (fallback) fallback.style.display = 'flex';
+                        };
+                    }
+                    
+                    // Always update the fallback as well (in case PNG fails)
+                    if (connectionText) {
+                        connectionText.textContent = isOnline ? '💚' : '❌';
+                    }
+                    if (statusIndicator) {
+                        statusIndicator.className = isOnline ? 'status-indicator online' : 'status-indicator offline';
+                    }
+                };
             }
             
             // Handle button PNGs

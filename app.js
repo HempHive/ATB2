@@ -1427,8 +1427,18 @@ class ATBDashboard {
             const unrealized = m.qty > 0 ? (lastPrice - m.avgCost) * m.qty : 0;
             const total = allocation + m.realizedPnl + unrealized;
             const pct = allocation > 0 ? ((total - allocation) / allocation) * 100 : 0;
+            const pnlClass = pct > 0 ? 'positive' : (pct < 0 ? 'negative' : 'neutral');
             const arrow = pct > 0 ? '▲' : (pct < 0 ? '▼' : '•');
-            btn.innerHTML = `<span>${bot.name} (${bot.asset})</span><span style="margin-left:6px;color:${pct>=0?'var(--success)':'var(--danger)'}">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
+            
+            btn.innerHTML = `
+                <div class="bot-name">${bot.name}</div>
+                <div class="bot-asset">${asset}</div>
+                <div class="bot-status">
+                    <span class="status-dot ${bot.active ? 'online' : 'offline'}"></span>
+                    <span>${bot.active ? 'Active' : 'Inactive'}</span>
+                </div>
+                <div class="bot-pnl ${pnlClass}">${arrow} ${Math.abs(pct).toFixed(1)}%</div>
+            `;
             btn.title = 'Click to select bot, Right-click for management';
             btn.style.flex = '1';
             btn.addEventListener('click', () => {
@@ -2132,7 +2142,14 @@ class ATBDashboard {
             wrap.style.gap = '8px';
             const btn = document.createElement('button');
             btn.className = 'active-bot-btn';
-            btn.innerHTML = `<span class="status-dot online"></span><span>${bot.name} (${bot.asset})</span>`;
+            btn.innerHTML = `
+                <div class="bot-name">${bot.name}</div>
+                <div class="bot-asset">${bot.asset}</div>
+                <div class="bot-status">
+                    <span class="status-dot online"></span>
+                    <span>Active</span>
+                </div>
+            `;
             btn.addEventListener('click', () => this.renderBotActivityCharts(botId));
             const pdfBtn = document.createElement('button');
             pdfBtn.className = 'btn btn-secondary';
@@ -2555,10 +2572,15 @@ class ATBDashboard {
     }
     
     deleteBot() {
-        const botId = this.currentBot;
-        if (!botId || !this.bots[botId]) return;
+        // Get bot ID from the selector or current bot
+        const botId = document.getElementById('bot-selector').value || this.currentBot;
+        if (!botId || !this.bots[botId]) {
+            this.addAlert('error', 'No Bot Selected', 'Please select a bot to delete');
+            return;
+        }
         
-        if (confirm('Are you sure you want to delete this bot?')) {
+        const bot = this.bots[botId];
+        if (confirm(`Are you sure you want to delete "${bot.name}"? This action cannot be undone.`)) {
             delete this.bots[botId];
             
             // Remove from dropdown
@@ -2567,11 +2589,20 @@ class ATBDashboard {
                 option.remove();
             }
             
+            // Clear current bot if it was the deleted one
+            if (this.currentBot === botId) {
+                this.currentBot = null;
+            }
+            
             // Hide management panel
             const modal = document.getElementById('bot-management-modal');
             if (modal) modal.classList.remove('show');
             
-            this.addAlert('success', 'Bot Deleted', 'Bot has been removed');
+            // Update UI
+            this.renderActiveBots();
+            this.updateBotStatus();
+            
+            this.addAlert('success', 'Bot Deleted', `"${bot.name}" has been removed`);
         }
     }
     
