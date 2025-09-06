@@ -1160,9 +1160,7 @@ body {
     }
     
     .footer-content {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        text-align: center;
+        /* Keep original layout - don't stack vertically on tablet */
     }
     
     .graph-controls {
