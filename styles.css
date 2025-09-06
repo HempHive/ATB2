@@ -1195,22 +1195,50 @@ body {
     }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Hidden by default, visible on hover/scroll */
 ::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--border-secondary);
+    background: transparent;
     border-radius: var(--radius-sm);
+    transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--gold-primary);
+}
+
+/* Show scrollbar on hover */
+*:hover::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+}
+
+/* Show scrollbar when scrolling */
+*:focus::-webkit-scrollbar-thumb,
+*:active::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+}
+
+/* Firefox scrollbar styling */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+}
+
+*:hover {
+    scrollbar-color: var(--border-secondary) transparent;
+}
+
+*:focus,
+*:active {
+    scrollbar-color: var(--border-secondary) transparent;
 }
 
 /* Animation Classes */
