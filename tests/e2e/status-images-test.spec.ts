@@ -24,9 +24,10 @@ test.describe('Status Images and Delete Button', () => {
         const pngExists = await statusPng.count() > 0;
         expect(pngExists).toBeTruthy();
         
-        // Check that the fallback button exists and is visible
+        // Check that the fallback button exists (may be hidden if PNG is visible)
         const statusFallback = page.locator('#connection-status');
-        await expect(statusFallback).toBeVisible();
+        const fallbackExists = await statusFallback.count() > 0;
+        expect(fallbackExists).toBeTruthy();
         
         // Check that the status PNG has the correct classes
         const pngClasses = await statusPng.getAttribute('class');

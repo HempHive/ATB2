@@ -273,6 +273,11 @@ class ATBDashboard {
             this.connectBroker();
         });
         
+        // Broker disconnection
+        document.getElementById('disconnect-broker').addEventListener('click', () => {
+            this.disconnectBroker();
+        });
+        
         // Investment buttons
         document.querySelectorAll('.invest-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -422,6 +427,9 @@ class ATBDashboard {
                 }
             }
         });
+        
+        // Expose chart to window for testing
+        window.chart = this.chart;
     }
     
     loadInitialData() {
@@ -660,6 +668,12 @@ class ATBDashboard {
             this.currentBot = null;
             const botConfigEl = document.getElementById('bot-config');
             if (botConfigEl) botConfigEl.style.display = 'none';
+            
+            // Clear market display when no bot is selected
+            const marketDisplay = document.getElementById('market-display');
+            if (marketDisplay) {
+                marketDisplay.textContent = 'Select a market to view';
+            }
             return;
         }
         
@@ -674,8 +688,23 @@ class ATBDashboard {
         const botConfigEl = document.getElementById('bot-config');
         if (botConfigEl) botConfigEl.style.display = 'block';
         
-        // Update chart
-        this.updateChart();
+        // Update market display to show bot's asset
+        const marketDisplay = document.getElementById('market-display');
+        if (marketDisplay) {
+            // Get the market name from the asset symbol
+            const marketName = this.getMarketNameFromSymbol(bot.asset);
+            marketDisplay.textContent = `${marketName} (${bot.asset})`;
+        }
+        
+        // Set current market display for chart
+        this.currentMarketDisplay = {
+            symbol: bot.asset,
+            name: this.getMarketNameFromSymbol(bot.asset),
+            type: this.getMarketType(bot.asset)
+        };
+        
+        // Update chart with bot's market data
+        this.updateChartForSelectedBot();
         
         // Update bot stats badge in graph header
         const allocation = this.botAllocations[botId] || 0;
@@ -807,40 +836,11 @@ class ATBDashboard {
     }
     
     updateTimeframe(timeframe) {
+        this.currentTimeframe = timeframe;
         this.addAlert('info', 'Timeframe Updated', `Chart timeframe set to ${timeframe}`);
-        // Fetch data for selected market and timeframe if available
-        if (this.currentMarketDisplay && this.currentMarketDisplay.symbol) {
-            const symbol = this.currentMarketDisplay.symbol;
-            const cache = (this.timeframeCache[symbol] && this.timeframeCache[symbol][timeframe]) || null;
-            if (cache && cache.length) {
-                const labels = cache.map(d => new Date(d.time).toLocaleString());
-                const prices = cache.map(d => d.price);
-                this.chart.data.labels = labels;
-                this.chart.data.datasets[0].data = prices;
-                this.chart.update('none');
-                this.prefetchPopularTimeframes(symbol, timeframe);
-            } else {
-                fetch(`/api/market-data/${encodeURIComponent(symbol)}/timeframe?timeframe=${encodeURIComponent(timeframe)}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (Array.isArray(data) && data.length) {
-                            this.timeframeCache[symbol] = this.timeframeCache[symbol] || {};
-                            this.timeframeCache[symbol][timeframe] = data;
-                            const labels = data.map(d => new Date(d.time).toLocaleString());
-                            const prices = data.map(d => d.price);
-                            this.chart.data.labels = labels;
-                            this.chart.data.datasets[0].data = prices;
-                            this.chart.update('none');
-                            this.prefetchPopularTimeframes(symbol, timeframe);
-                        } else {
-                            this.updateChartForTimeframe(timeframe);
-                        }
-                    })
-                    .catch(() => this.updateChartForTimeframe(timeframe));
-            }
-        } else {
-            this.updateChartForTimeframe(timeframe);
-        }
+        
+        // Update chart with new timeframe data
+        this.updateChartForTimeframe(timeframe);
     }
     
     toggleSimulationMode() {
@@ -1752,6 +1752,9 @@ class ATBDashboard {
             this.brokerConnected = true;
             this.isLiveTrading = true;
             
+            // Update connection status in toolbar
+            this.updateConnectionStatus(true);
+            
             // Update UI
             document.getElementById('broker-login').style.display = 'none';
             document.getElementById('account-info').style.display = 'block';
@@ -1764,7 +1767,27 @@ class ATBDashboard {
             
         } catch (error) {
             this.hideLoadingOverlay();
+            this.updateConnectionStatus(false);
             this.addAlert('danger', 'Connection Failed', 'Failed to connect to broker. Please check your credentials.');
+        }
+    }
+    
+    async disconnectBroker() {
+        try {
+            this.brokerConnected = false;
+            this.isLiveTrading = false;
+            
+            // Update connection status in toolbar
+            this.updateConnectionStatus(false);
+            
+            // Update UI
+            document.getElementById('broker-login').style.display = 'block';
+            document.getElementById('account-info').style.display = 'none';
+            
+            this.addAlert('info', 'Broker Disconnected', 'Disconnected from broker');
+            
+        } catch (error) {
+            this.addAlert('danger', 'Disconnect Failed', 'Failed to disconnect from broker');
         }
     }
     
@@ -2627,16 +2650,21 @@ class ATBDashboard {
                         case '5m': return date.toLocaleTimeString();
                         case '15m': return date.toLocaleTimeString();
                         case '1h': return date.toLocaleTimeString();
+                        case '4h': return date.toLocaleTimeString();
                         case '1d': return date.toLocaleDateString();
                         case '1w': return date.toLocaleDateString();
                         case '1M': return date.toLocaleDateString();
-                        default: return date.toLocaleTimeString();
+                        case '3M': return date.toLocaleDateString();
+                        case '6M': return date.toLocaleDateString();
+                        case '1y': return date.toLocaleDateString();
+                        default: return date.toLocaleString();
                     }
                 });
                 const prices = data.map(d => d.price);
                 
                 this.chart.data.labels = labels;
                 this.chart.data.datasets[0].data = prices;
+                this.chart.data.datasets[0].label = `${symbol} Price (${timeframe})`;
                 this.chart.update('none');
             }
             
@@ -2665,9 +2693,13 @@ class ATBDashboard {
             case '5m': dataPoints = 60; intervalMs = 300000; break;
             case '15m': dataPoints = 60; intervalMs = 900000; break;
             case '1h': dataPoints = 24; intervalMs = 3600000; break;
+            case '4h': dataPoints = 24; intervalMs = 14400000; break;
             case '1d': dataPoints = 30; intervalMs = 86400000; break;
-            case '1w': dataPoints = 52; intervalMs = 604800000; break;
-            case '1M': dataPoints = 12; intervalMs = 2592000000; break;
+            case '1w': dataPoints = 28; intervalMs = 604800000; break;
+            case '1M': dataPoints = 30; intervalMs = 2592000000; break;
+            case '3M': dataPoints = 90; intervalMs = 7776000000; break;
+            case '6M': dataPoints = 180; intervalMs = 15552000000; break;
+            case '1y': dataPoints = 365; intervalMs = 31536000000; break;
         }
         
         for (let i = dataPoints - 1; i >= 0; i--) {
@@ -2799,15 +2831,115 @@ class ATBDashboard {
         this.selectedMarket = {
             symbol: symbol,
             name: name,
-            price: price
+            price: price,
+            type: this.getMarketType(symbol)
         };
+        
+        // Set current market display for chart
+        this.currentMarketDisplay = this.selectedMarket;
+        
+        // Update the "Current Market" header
+        const marketDisplay = document.getElementById('market-display');
+        if (marketDisplay) {
+            marketDisplay.textContent = `${name} (${symbol})`;
+        }
         
         // Enable buttons
         document.getElementById('create-bot').disabled = false;
         const viewMarketBtn = document.getElementById('view-market');
         if (viewMarketBtn) viewMarketBtn.disabled = false;
         
+        // Update chart with new market data
+        this.updateChartForSelectedMarket();
+        
         this.addAlert('info', 'Market Selected', `Selected ${name} (${symbol})`);
+    }
+    
+    updateChartForSelectedMarket() {
+        if (!this.selectedMarket || !this.chart) return;
+        
+        // Show loading indicator
+        this.showChartLoading();
+        
+        // Simulate loading delay for better UX
+        setTimeout(() => {
+            const symbol = this.selectedMarket.symbol;
+            const data = this.generateDataForTimeframe(symbol, '1d');
+            
+            if (data && data.length > 0) {
+                const labels = data.map(d => {
+                    const date = new Date(d.time);
+                    return date.toLocaleString();
+                });
+                const prices = data.map(d => d.price);
+                
+                this.chart.data.labels = labels;
+                this.chart.data.datasets[0].data = prices;
+                this.chart.data.datasets[0].label = `${symbol} Price`;
+                this.chart.update('none');
+            }
+            
+            this.hideChartLoading();
+        }, 500);
+    }
+    
+    getMarketType(symbol) {
+        // Determine market type based on symbol
+        if (symbol.includes('BTC') || symbol.includes('ETH') || symbol.includes('USD') && symbol.includes('-')) {
+            return 'crypto';
+        } else if (symbol.includes('GOLD') || symbol.includes('OIL') || symbol.includes('SILVER')) {
+            return 'commodity';
+        } else {
+            return 'stock';
+        }
+    }
+    
+    getMarketNameFromSymbol(symbol) {
+        // Map symbol to market name
+        const marketNames = {
+            'BTC-USD': 'Bitcoin',
+            'ETH-USD': 'Ethereum',
+            'AAPL': 'Apple',
+            'GOOGL': 'Google',
+            'MSFT': 'Microsoft',
+            'TSLA': 'Tesla',
+            'AMZN': 'Amazon',
+            'GOLD': 'Gold',
+            'OIL': 'Oil',
+            'SILVER': 'Silver'
+        };
+        
+        return marketNames[symbol] || symbol;
+    }
+    
+    updateChartForSelectedBot() {
+        if (!this.currentBot || !this.chart) return;
+        
+        const bot = this.bots[this.currentBot];
+        const symbol = bot.asset;
+        
+        // Show loading indicator
+        this.showChartLoading();
+        
+        // Simulate loading delay for better UX
+        setTimeout(() => {
+            const data = this.generateDataForTimeframe(symbol, '1d');
+            
+            if (data && data.length > 0) {
+                const labels = data.map(d => {
+                    const date = new Date(d.time);
+                    return date.toLocaleString();
+                });
+                const prices = data.map(d => d.price);
+                
+                this.chart.data.labels = labels;
+                this.chart.data.datasets[0].data = prices;
+                this.chart.data.datasets[0].label = `${symbol} Price`;
+                this.chart.update('none');
+            }
+            
+            this.hideChartLoading();
+        }, 500);
     }
     
     viewMarketGraph() {
@@ -2977,6 +3109,9 @@ class ATBDashboard {
         });
     }
 }
+
+// Expose ATBDashboard class to window for testing
+window.ATBDashboard = ATBDashboard;
 
 // Initialize the dashboard when the page loads
 document.addEventListener('DOMContentLoaded', () => {

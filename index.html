@@ -79,7 +79,7 @@
                     </button>
                 </div>
                 <div class="button-container" data-button-id="connection-status">
-                    <img src="images/status-online.png" alt="Online" class="btn-png status-png" id="status-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <img src="images/online.png" alt="Online" class="btn-png status-png" id="status-png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <button id="connection-status" class="btn btn-secondary btn-fallback">
                         <span id="connection-indicator" class="status-indicator offline"></span>
                         <span id="connection-text">❌</span>
@@ -237,6 +237,9 @@
                     <div class="available-funds">
                         <label>Available Funds:</label>
                         <span id="available-funds">$95,000.00</span>
+                    </div>
+                    <div class="account-actions">
+                        <button id="disconnect-broker" class="btn btn-danger">Disconnect</button>
                     </div>
                 </div>
                 <div class="broker-login" id="broker-login" style="display: none;">
@@ -1072,7 +1075,7 @@
                     
                     if (statusPng) {
                         // Always try to update the PNG source first
-                        statusPng.src = isOnline ? 'images/status-online.png' : 'images/status-offline.png';
+                        statusPng.src = isOnline ? 'images/online.png' : 'images/offline.png';
                         statusPng.alt = isOnline ? 'Online' : 'Offline';
                         
                         // Add load event listener to show PNG when it loads
@@ -1110,7 +1113,7 @@
                     
                     if (statusPng) {
                         // Always try to update the PNG source first
-                        statusPng.src = isOnline ? 'images/status-online.png' : 'images/status-offline.png';
+                        statusPng.src = isOnline ? 'images/online.png' : 'images/offline.png';
                         statusPng.alt = isOnline ? 'Online' : 'Offline';
                         
                         // Add load event listener to show PNG when it loads
