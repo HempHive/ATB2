@@ -1551,7 +1551,7 @@ class ATBDashboard {
     
     updateLastUpdateTime() {
         document.getElementById('last-update').textContent = 
-            `Last Update: ${new Date().toLocaleTimeString()}`;
+            `Update: ${new Date().toLocaleTimeString()}`;
     }
     
     // Zoom functionality
