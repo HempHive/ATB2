@@ -22,7 +22,7 @@ A sophisticated multi-platform trading bot system featuring both desktop GUI and
 - **Risk Management**: Advanced stop-loss, position sizing, and daily limits
 
 ### 🎨 **Modern UI/UX**
-- **8 Theme Presets**: Black & Gold, Dark Blue, Green Dark, Purple Dark, Red Dark, Ocean, Sunset, Forest
+- **8 Theme Presets**: Black & Gold, Sunrise, Neon, Purple Dark, Red Dark, Ocean, Sunset, Forest
 - **Custom Theme Editor**: Real-time color and font customization
 - **Portrait PNG Buttons**: Custom toolbar buttons with automatic fallback
 - **Responsive Design**: Optimized for all screen sizes
@@ -176,8 +176,8 @@ The application comes with pre-configured sample bots:
 
 ### Built-in Themes
 1. **Black & Gold** - Professional dark theme with gold accents
-2. **Dark Blue** - Corporate blue theme
-3. **Green Dark** - Nature-inspired green theme
+2. **Sunrise** - Warm yellow/orange sunrise theme
+3. **Neon** - Bright neon colors with cyan and magenta accents
 4. **Purple Dark** - Creative purple theme
 5. **Red Dark** - Bold red theme
 6. **Ocean** - Calming blue ocean theme

@@ -1,0 +1,330 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - img "ATB Auto Trading Bot v3" [ref=e5] [cursor=pointer]
+        - text: 
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - img "Digital Account" [ref=e8] [cursor=pointer]
+          - text: 
+        - generic [ref=e9]:
+          - img "Digital Bank" [ref=e10] [cursor=pointer]
+          - text: 
+        - generic [ref=e11]:
+          - img "Digital Currency" [ref=e12] [cursor=pointer]
+          - text: 
+        - generic [ref=e13]:
+          - img "Market Data" [ref=e14] [cursor=pointer]
+          - text: 
+        - generic [ref=e15]:
+          - img "Strategy Editor" [ref=e16] [cursor=pointer]
+          - text: 
+        - generic [ref=e17]:
+          - img "Portfolio Investments" [ref=e18] [cursor=pointer]
+          - text: 
+        - generic [ref=e19]:
+          - img "GUI Customise" [ref=e20] [cursor=pointer]
+          - text: 
+        - generic [ref=e21]:
+          - img "Theme Toggle" [ref=e22] [cursor=pointer]
+          - text: 
+        - img "Online" [ref=e24] [cursor=pointer]
+  - main [ref=e25]:
+    - complementary [ref=e26]:
+      - generic [ref=e27]:
+        - heading " Market Selection" [level=3] [ref=e28]:
+          - generic [ref=e29]: 
+          - text: Market Selection
+        - generic [ref=e30]:
+          - heading "Available Markets" [level=4] [ref=e31]
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - heading "Commodities" [level=5] [ref=e34]
+              - generic [ref=e35]:
+                - generic [ref=e36] [cursor=pointer]:
+                  - generic [ref=e37] [cursor=pointer]: SI=F
+                  - generic [ref=e38] [cursor=pointer]: Silver
+                  - generic [ref=e39] [cursor=pointer]: $24.81
+                - generic [ref=e40] [cursor=pointer]:
+                  - generic [ref=e41] [cursor=pointer]: GC=F
+                  - generic [ref=e42] [cursor=pointer]: Gold
+                  - generic [ref=e43] [cursor=pointer]: $1901.45
+                - generic [ref=e44] [cursor=pointer]:
+                  - generic [ref=e45] [cursor=pointer]: CL=F
+                  - generic [ref=e46] [cursor=pointer]: Oil
+                  - generic [ref=e47] [cursor=pointer]: $74.97
+                - generic [ref=e48] [cursor=pointer]:
+                  - generic [ref=e49] [cursor=pointer]: HG=F
+                  - generic [ref=e50] [cursor=pointer]: Copper
+                  - generic [ref=e51] [cursor=pointer]: $3.83
+                - generic [ref=e52] [cursor=pointer]:
+                  - generic [ref=e53] [cursor=pointer]: PL=F
+                  - generic [ref=e54] [cursor=pointer]: Platinum
+                  - generic [ref=e55] [cursor=pointer]: $997.95
+            - generic [ref=e56]:
+              - heading "Stocks" [level=5] [ref=e57]
+              - generic [ref=e58]:
+                - generic [ref=e59] [cursor=pointer]:
+                  - generic [ref=e60] [cursor=pointer]: AAPL
+                  - generic [ref=e61] [cursor=pointer]: Apple
+                  - generic [ref=e62] [cursor=pointer]: $150.65
+                - generic [ref=e63] [cursor=pointer]:
+                  - generic [ref=e64] [cursor=pointer]: GOOGL
+                  - generic [ref=e65] [cursor=pointer]: Google
+                  - generic [ref=e66] [cursor=pointer]: $2842.06
+                - generic [ref=e67] [cursor=pointer]:
+                  - generic [ref=e68] [cursor=pointer]: MSFT
+                  - generic [ref=e69] [cursor=pointer]: Microsoft
+                  - generic [ref=e70] [cursor=pointer]: $298.60
+            - generic [ref=e71]:
+              - heading "Crypto" [level=5] [ref=e72]
+              - generic [ref=e73]:
+                - generic [ref=e74] [cursor=pointer]:
+                  - generic [ref=e75] [cursor=pointer]: BTC
+                  - generic [ref=e76] [cursor=pointer]: Bitcoin
+                  - generic [ref=e77] [cursor=pointer]: $45099.35
+                - generic [ref=e78] [cursor=pointer]:
+                  - generic [ref=e79] [cursor=pointer]: ETH
+                  - generic [ref=e80] [cursor=pointer]: Ethereum
+                  - generic [ref=e81] [cursor=pointer]: $3068.73
+        - button " Create Bot" [disabled] [ref=e83] [cursor=pointer]:
+          - generic [ref=e84] [cursor=pointer]: 
+          - text: Create Bot
+      - generic [ref=e85]:
+        - heading " Market Selection" [level=3] [ref=e86]:
+          - generic [ref=e87]: 
+          - text: Market Selection
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - checkbox "Commodities" [checked] [ref=e90]
+            - generic [ref=e91] [cursor=pointer]: Commodities
+          - generic [ref=e92]:
+            - checkbox "Stocks" [checked] [ref=e93]
+            - generic [ref=e94] [cursor=pointer]: Stocks
+          - generic [ref=e95]:
+            - checkbox "Crypto" [checked] [ref=e96]
+            - generic [ref=e97] [cursor=pointer]: Crypto
+      - generic [ref=e98]:
+        - heading " Bot Selector" [level=3] [ref=e99]:
+          - generic [ref=e100]: 
+          - text: Bot Selector
+        - combobox [ref=e101]:
+          - option "Select a Bot"
+          - option "Stock Bot 1 (AAPL)"
+          - option "Stock Bot 2 (GOOGL)"
+          - option "Stock Bot 3 (MSFT)"
+          - option "Stock Bot 4 (TSLA)"
+          - option "Stock Bot 5 (AMZN)"
+          - option "Crypto Bot 1 (BTC)"
+          - option "Crypto Bot 2 (ETH)" [selected]
+      - generic [ref=e103]:
+        - heading " Live Trading" [level=3] [ref=e104]:
+          - generic [ref=e105]: 
+          - text: Live Trading
+        - generic [ref=e106]:
+          - generic [ref=e107] [cursor=pointer]:
+            - radio "Simulation" [checked] [ref=e108]
+            - generic [ref=e109] [cursor=pointer]: Simulation
+          - generic [ref=e110] [cursor=pointer]:
+            - radio "Live Trading" [ref=e111]
+            - generic [ref=e112] [cursor=pointer]: Live Trading
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - generic [ref=e115]: "Account Balance:"
+            - generic [ref=e116]: $100,000.00
+          - generic [ref=e117]:
+            - generic [ref=e118]: "Available Funds:"
+            - generic [ref=e119]: $95,000.00
+          - button "Disconnect" [ref=e121] [cursor=pointer]
+      - generic [ref=e122]:
+        - heading " Bot Controls" [level=3] [ref=e123]:
+          - generic [ref=e124]: 
+          - text: Bot Controls
+        - generic [ref=e125]:
+          - button " Start" [ref=e126] [cursor=pointer]:
+            - generic [ref=e127] [cursor=pointer]: 
+            - text: Start
+          - button " Pause" [disabled] [ref=e128] [cursor=pointer]:
+            - generic [ref=e129] [cursor=pointer]: 
+            - text: Pause
+          - button " Reset" [ref=e130] [cursor=pointer]:
+            - generic [ref=e131] [cursor=pointer]: 
+            - text: Reset
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - heading " Active Bots" [level=3] [ref=e134]:
+          - generic [ref=e135]: 
+          - text: Active Bots
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - button "Click to activate bot" [ref=e138] [cursor=pointer]
+            - button "Stock Bot 1 AAPL Inactive • 0.0%" [ref=e140] [cursor=pointer]:
+              - generic [ref=e141] [cursor=pointer]: Stock Bot 1
+              - generic [ref=e142] [cursor=pointer]: AAPL
+              - generic [ref=e145] [cursor=pointer]: Inactive
+              - generic [ref=e146] [cursor=pointer]: • 0.0%
+          - generic [ref=e147]:
+            - button "Click to activate bot" [ref=e148] [cursor=pointer]
+            - button "Stock Bot 2 GOOGL Inactive • 0.0%" [ref=e150] [cursor=pointer]:
+              - generic [ref=e151] [cursor=pointer]: Stock Bot 2
+              - generic [ref=e152] [cursor=pointer]: GOOGL
+              - generic [ref=e155] [cursor=pointer]: Inactive
+              - generic [ref=e156] [cursor=pointer]: • 0.0%
+          - generic [ref=e157]:
+            - button "Click to activate bot" [ref=e158] [cursor=pointer]
+            - button "Stock Bot 3 MSFT Inactive • 0.0%" [ref=e160] [cursor=pointer]:
+              - generic [ref=e161] [cursor=pointer]: Stock Bot 3
+              - generic [ref=e162] [cursor=pointer]: MSFT
+              - generic [ref=e165] [cursor=pointer]: Inactive
+              - generic [ref=e166] [cursor=pointer]: • 0.0%
+          - generic [ref=e167]:
+            - button "Click to activate bot" [ref=e168] [cursor=pointer]
+            - button "Stock Bot 4 TSLA Inactive • 0.0%" [ref=e170] [cursor=pointer]:
+              - generic [ref=e171] [cursor=pointer]: Stock Bot 4
+              - generic [ref=e172] [cursor=pointer]: TSLA
+              - generic [ref=e175] [cursor=pointer]: Inactive
+              - generic [ref=e176] [cursor=pointer]: • 0.0%
+          - generic [ref=e177]:
+            - button "Click to activate bot" [ref=e178] [cursor=pointer]
+            - button "Stock Bot 5 AMZN Inactive • 0.0%" [ref=e180] [cursor=pointer]:
+              - generic [ref=e181] [cursor=pointer]: Stock Bot 5
+              - generic [ref=e182] [cursor=pointer]: AMZN
+              - generic [ref=e185] [cursor=pointer]: Inactive
+              - generic [ref=e186] [cursor=pointer]: • 0.0%
+          - generic [ref=e187]:
+            - button "Click to activate bot" [ref=e188] [cursor=pointer]
+            - button "Crypto Bot 1 BTC Inactive • 0.0%" [ref=e190] [cursor=pointer]:
+              - generic [ref=e191] [cursor=pointer]: Crypto Bot 1
+              - generic [ref=e192] [cursor=pointer]: BTC
+              - generic [ref=e195] [cursor=pointer]: Inactive
+              - generic [ref=e196] [cursor=pointer]: • 0.0%
+          - generic [ref=e197]:
+            - button "Click to activate bot" [ref=e198] [cursor=pointer]
+            - button "Crypto Bot 2 ETH Inactive • 0.0%" [ref=e200] [cursor=pointer]:
+              - generic [ref=e201] [cursor=pointer]: Crypto Bot 2
+              - generic [ref=e202] [cursor=pointer]: ETH
+              - generic [ref=e205] [cursor=pointer]: Inactive
+              - generic [ref=e206] [cursor=pointer]: • 0.0%
+      - generic [ref=e207]:
+        - generic [ref=e208]:
+          - generic [ref=e209]:
+            - heading " Market Graph" [level=2] [ref=e210]:
+              - generic [ref=e211]: 
+              - text: Market Graph
+            - generic [ref=e212]:
+              - generic [ref=e213]: "Selected:"
+              - generic [ref=e214]: "Bot: Crypto Bot 2 - ETH (ETH)"
+          - generic [ref=e215]:
+            - generic [ref=e216]:
+              - generic [ref=e217]: "Time Zoom:"
+              - slider "Time Zoom:" [ref=e218]: "1"
+              - generic [ref=e219]: 100%
+            - combobox [ref=e220]:
+              - option "1 Minute"
+              - option "5 Minutes"
+              - option "15 Minutes"
+              - option "1 Hour" [selected]
+              - option "4 Hours"
+              - option "1 Day"
+              - option "1 Week"
+              - option "1 Month"
+              - option "3 Months"
+              - option "6 Months"
+              - option "1 Year"
+        - generic [ref=e221]: 
+      - generic [ref=e223]:
+        - heading " Live Profit/Loss Stats" [level=3] [ref=e224]:
+          - generic [ref=e225]: 
+          - text: Live Profit/Loss Stats
+        - generic [ref=e226]:
+          - generic [ref=e227]:
+            - generic [ref=e228]: Total P&L
+            - generic [ref=e229]: $0.00
+          - generic [ref=e230]:
+            - generic [ref=e231]: Today's P&L
+            - generic [ref=e232]: $0.00
+          - generic [ref=e233]:
+            - generic [ref=e234]: Active Positions
+            - generic [ref=e235]: "0"
+          - generic [ref=e236]:
+            - generic [ref=e237]: Win Rate
+            - generic [ref=e238]: 0.0%
+      - heading " Alerts & Notifications" [level=3] [ref=e240]:
+        - generic [ref=e241]: 
+        - text: Alerts & Notifications
+  - contentinfo [ref=e242]:
+    - generic [ref=e243]:
+      - generic [ref=e244]:
+        - generic [ref=e245]: ATB Auto Trading Bot v3.0
+        - generic [ref=e246]: •
+        - generic [ref=e247]: "Last Update: 1:50:58 AM"
+      - generic [ref=e250]:
+        - generic [ref=e251]:
+          - generic [ref=e252]: AAPL
+          - generic [ref=e253]: $148.35
+          - generic [ref=e254]: ▼ 2.53%
+        - generic [ref=e255]:
+          - generic [ref=e256]: GOOGL
+          - generic [ref=e257]: $2739.62
+          - generic [ref=e258]: ▼ 2.55%
+        - generic [ref=e259]:
+          - generic [ref=e260]: MSFT
+          - generic [ref=e261]: $294.51
+          - generic [ref=e262]: ▲ 4.88%
+        - generic [ref=e263]:
+          - generic [ref=e264]: TSLA
+          - generic [ref=e265]: $204.83
+          - generic [ref=e266]: ▼ 3.78%
+        - generic [ref=e267]:
+          - generic [ref=e268]: AMZN
+          - generic [ref=e269]: $3133.63
+          - generic [ref=e270]: ▲ 1.89%
+        - generic [ref=e271]:
+          - generic [ref=e272]: BTC
+          - generic [ref=e273]: $44588.75
+          - generic [ref=e274]: ▲ 4.30%
+        - generic [ref=e275]:
+          - generic [ref=e276]: ETH
+          - generic [ref=e277]: $3010.40
+          - generic [ref=e278]: ▲ 3.95%
+        - generic [ref=e279]:
+          - generic [ref=e280]: AAPL
+          - generic [ref=e281]: $148.35
+          - generic [ref=e282]: ▼ 2.53%
+        - generic [ref=e283]:
+          - generic [ref=e284]: GOOGL
+          - generic [ref=e285]: $2739.62
+          - generic [ref=e286]: ▼ 2.55%
+        - generic [ref=e287]:
+          - generic [ref=e288]: MSFT
+          - generic [ref=e289]: $294.51
+          - generic [ref=e290]: ▲ 4.88%
+        - generic [ref=e291]:
+          - generic [ref=e292]: TSLA
+          - generic [ref=e293]: $204.83
+          - generic [ref=e294]: ▼ 3.78%
+        - generic [ref=e295]:
+          - generic [ref=e296]: AMZN
+          - generic [ref=e297]: $3133.63
+          - generic [ref=e298]: ▲ 1.89%
+        - generic [ref=e299]:
+          - generic [ref=e300]: BTC
+          - generic [ref=e301]: $44588.75
+          - generic [ref=e302]: ▲ 4.30%
+        - generic [ref=e303]:
+          - generic [ref=e304]: ETH
+          - generic [ref=e305]: $3010.40
+          - generic [ref=e306]: ▲ 3.95%
+      - generic [ref=e307]:
+        - button " Export Data" [ref=e308] [cursor=pointer]:
+          - generic [ref=e309] [cursor=pointer]: 
+          - text: Export Data
+        - button " Simulation Mode" [ref=e310] [cursor=pointer]:
+          - generic [ref=e311] [cursor=pointer]: 
+          - text: Simulation Mode
+  - text:                             +     +      
+```

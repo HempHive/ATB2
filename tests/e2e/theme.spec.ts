@@ -27,8 +27,8 @@ test.describe('Theme Customization Tests', () => {
         
         // Check preset buttons
         await expect(page.locator('.preset-btn[data-theme="black-gold"]')).toBeVisible();
-        await expect(page.locator('.preset-btn[data-theme="dark-blue"]')).toBeVisible();
-        await expect(page.locator('.preset-btn[data-theme="green-dark"]')).toBeVisible();
+        await expect(page.locator('.preset-btn[data-theme="sunrise"]')).toBeVisible();
+        await expect(page.locator('.preset-btn[data-theme="neon"]')).toBeVisible();
         await expect(page.locator('.preset-btn[data-theme="purple-dark"]')).toBeVisible();
         await expect(page.locator('.preset-btn[data-theme="red-dark"]')).toBeVisible();
         await expect(page.locator('.preset-btn[data-theme="ocean"]')).toBeVisible();
@@ -208,7 +208,7 @@ test.describe('Theme Customization Tests', () => {
     test('theme changes affect all UI elements', async ({ page }) => {
         // Open theme modal and apply theme
         await page.click('#theme-customizer');
-        await page.click('.preset-btn[data-theme="dark-blue"]');
+        await page.click('.preset-btn[data-theme="sunrise"]');
         
         // Check that various UI elements are affected
         const headerStyles = await page.evaluate(() => {
@@ -249,7 +249,7 @@ test.describe('Theme Customization Tests', () => {
     });
 
     test('theme customization works with different preset themes', async ({ page }) => {
-        const themes = ['black-gold', 'dark-blue', 'green-dark', 'purple-dark', 'red-dark', 'ocean', 'sunset', 'forest'];
+        const themes = ['black-gold', 'sunrise', 'neon', 'purple-dark', 'red-dark', 'ocean', 'sunset', 'forest'];
         
         for (const theme of themes) {
             // Open theme modal

@@ -51,7 +51,7 @@ test.describe('Theme Customization', () => {
         await page.waitForTimeout(500);
         
         // Test different preset themes
-        const themes = ['black-gold', 'dark-blue', 'green-dark', 'purple-dark', 'red-dark'];
+        const themes = ['black-gold', 'sunrise', 'neon', 'purple-dark', 'red-dark'];
         
         for (const theme of themes) {
             console.log(`📊 Testing ${theme} theme...`);
@@ -264,7 +264,7 @@ test.describe('Theme Customization', () => {
         await page.waitForTimeout(500);
         
         // Apply a preset theme
-        await page.click('[data-theme="dark-blue"]');
+        await page.click('[data-theme="sunrise"]');
         
         await page.waitForTimeout(1000);
         

@@ -11,8 +11,8 @@
 - **✅ Custom Color Panel** - Complete theme customization with color pickers
 - **✅ 5 Preset Themes**:
   - Black & Gold (default)
-  - Dark Blue
-  - Green Dark
+  - Sunrise
+  - Neon
   - Purple Dark
   - Red Dark
 - **✅ Real-time Theme Switching** - Apply themes instantly without page reload
@@ -97,15 +97,15 @@
 - High contrast for readability
 - Gold accents for premium feel
 
-### **Dark Blue**
-- Calming blue tones
-- Professional appearance
-- Easy on the eyes
+### **Sunrise**
+- Warm yellow/orange tones
+- Sunrise-inspired appearance
+- Vibrant orange accents
 
-### **Green Dark**
-- Trading-focused green
-- Success-oriented colors
-- Modern dark theme
+### **Neon**
+- Bright neon colors
+- High-contrast appearance
+- Cyan and magenta accents
 
 ### **Purple Dark**
 - Unique purple accents

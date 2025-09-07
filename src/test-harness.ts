@@ -423,16 +423,16 @@ export class ATB2TestHarness {
                 '--accent-color': '#ffd700',
                 '--text-primary': '#ffffff'
             },
-            'dark-blue': {
-                '--bg-primary': '#0a0a1a',
-                '--bg-secondary': '#1a1a2a',
-                '--accent-color': '#4a9eff',
+            'sunrise': {
+                '--bg-primary': '#1a0f0a',
+                '--bg-secondary': '#2e1a0f',
+                '--accent-color': '#ff8c00',
                 '--text-primary': '#ffffff'
             },
-            'green-dark': {
-                '--bg-primary': '#0a1a0a',
-                '--bg-secondary': '#1a2a1a',
-                '--accent-color': '#4aff4a',
+            'neon': {
+                '--bg-primary': '#0a0a0a',
+                '--bg-secondary': '#1a0a1a',
+                '--accent-color': '#00ffff',
                 '--text-primary': '#ffffff'
             }
         };

@@ -111,6 +111,15 @@ class ATBDashboard {
         const themeCustEl = document.getElementById('theme-customizer');
         if (themeCustEl) themeCustEl.addEventListener('click', () => this.showThemeModal());
         
+        // Legal modal (right-click on logo)
+        const logoEl = document.querySelector('.logo-png');
+        if (logoEl) {
+            logoEl.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                this.showLegalModal();
+            });
+        }
+        
         // Bot selector
         document.getElementById('bot-selector').addEventListener('change', (e) => {
             this.selectBot(e.target.value);
@@ -200,6 +209,14 @@ class ATBDashboard {
                 this.hideModal();
             });
         });
+        
+        // Legal modal close button
+        const legalCloseBtn = document.getElementById('legal-close');
+        if (legalCloseBtn) {
+            legalCloseBtn.addEventListener('click', () => {
+                this.hideLegalModal();
+            });
+        }
         
         const alertOkBtn = document.getElementById('alert-ok');
         if (alertOkBtn) alertOkBtn.addEventListener('click', () => this.hideModal());
@@ -1554,6 +1571,21 @@ class ATBDashboard {
         document.getElementById('theme-modal').classList.add('show');
     }
     
+    // Legal modal
+    showLegalModal() {
+        const modal = document.getElementById('legal-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    }
+    
+    hideLegalModal() {
+        const modal = document.getElementById('legal-modal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+    
     applyPresetTheme(themeName) {
         const themes = {
             'black-gold': {
@@ -1576,45 +1608,45 @@ class ATBDashboard {
                 '--gradient-start': '#0a0a0a',
                 '--gradient-end': '#1e1e1e'
             },
-            'dark-blue': {
-                '--bg-primary': '#0a0f1a',
-                '--bg-secondary': '#1a2332',
-                '--bg-tertiary': '#2a3441',
-                '--bg-card': '#1e2a3a',
-                '--bg-hover': '#334a5a',
-                '--bg-ticker': '#3a4a6a',
-                '--gold-primary': '#4a9eff',
-                '--gold-secondary': '#6bb6ff',
-                '--gold-dark': '#2e7ce6',
-                '--gold-light': '#b3d9ff',
+            'sunrise': {
+                '--bg-primary': '#1a0f0a',
+                '--bg-secondary': '#2e1a0f',
+                '--bg-tertiary': '#3e2a14',
+                '--bg-card': '#3a1e0a',
+                '--bg-hover': '#4a2f1a',
+                '--bg-ticker': '#5a3a2a',
+                '--gold-primary': '#ff8c00',
+                '--gold-secondary': '#ffa500',
+                '--gold-dark': '#ff6600',
+                '--gold-light': '#ffcc80',
                 '--text-primary': '#ffffff',
-                '--text-secondary': '#b3c7d9',
-                '--text-muted': '#8fa3b3',
-                '--border-primary': '#3a4a5a',
-                '--border-secondary': '#4a5a6a',
-                '--border-gold': '#4a9eff',
-                '--gradient-start': '#0a0f1a',
-                '--gradient-end': '#1e2a3a'
+                '--text-secondary': '#ffd9b3',
+                '--text-muted': '#ffb366',
+                '--border-primary': '#4a3a2a',
+                '--border-secondary': '#5a4a3a',
+                '--border-gold': '#ff8c00',
+                '--gradient-start': '#1a0f0a',
+                '--gradient-end': '#3a1e0a'
             },
-            'green-dark': {
-                '--bg-primary': '#0a1a0a',
-                '--bg-secondary': '#1a2e1a',
-                '--bg-tertiary': '#2a3e2a',
-                '--bg-card': '#1e3a1e',
-                '--bg-hover': '#334a33',
-                '--bg-ticker': '#3a5a3a',
-                '--gold-primary': '#00ff88',
-                '--gold-secondary': '#4cffa3',
-                '--gold-dark': '#00cc6a',
-                '--gold-light': '#b3ffcc',
+            'neon': {
+                '--bg-primary': '#0a0a0a',
+                '--bg-secondary': '#1a0a1a',
+                '--bg-tertiary': '#2a0a2a',
+                '--bg-card': '#1e0a1e',
+                '--bg-hover': '#330a33',
+                '--bg-ticker': '#3a0a3a',
+                '--gold-primary': '#00ffff',
+                '--gold-secondary': '#4dffff',
+                '--gold-dark': '#00cccc',
+                '--gold-light': '#b3ffff',
                 '--text-primary': '#ffffff',
-                '--text-secondary': '#b3d9b3',
-                '--text-muted': '#8fcc8f',
-                '--border-primary': '#3a4a3a',
-                '--border-secondary': '#4a5a4a',
-                '--border-gold': '#00ff88',
-                '--gradient-start': '#0a1a0a',
-                '--gradient-end': '#1e3a1e'
+                '--text-secondary': '#ff00ff',
+                '--text-muted': '#cc00cc',
+                '--border-primary': '#3a0a3a',
+                '--border-secondary': '#4a0a4a',
+                '--border-gold': '#00ffff',
+                '--gradient-start': '#0a0a0a',
+                '--gradient-end': '#1e0a1e'
             },
             'purple-dark': {
                 '--bg-primary': '#1a0a1a',
@@ -1687,9 +1719,9 @@ class ATBDashboard {
                 '--gold-secondary': '#ffab91',
                 '--gold-dark': '#ff7043',
                 '--gold-light': '#ffccbc',
-                '--text-primary': '#ffe0b2',
-                '--text-secondary': '#ffccbc',
-                '--text-muted': '#ffab91',
+                '--text-primary': '#e1bee7',
+                '--text-secondary': '#ce93d8',
+                '--text-muted': '#ba68c8',
                 '--border-primary': '#5a3a3a',
                 '--border-secondary': '#6a4a4a',
                 '--border-gold': '#ff8a65',
@@ -1703,16 +1735,16 @@ class ATBDashboard {
                 '--bg-card': '#1e3d2a',
                 '--bg-hover': '#2a4d3a',
                 '--bg-ticker': '#3a5d4a',
-                '--gold-primary': '#66bb6a',
-                '--gold-secondary': '#81c784',
-                '--gold-dark': '#4caf50',
-                '--gold-light': '#c8e6c9',
+                '--gold-primary': '#9c27b0',
+                '--gold-secondary': '#ba68c8',
+                '--gold-dark': '#7b1fa2',
+                '--gold-light': '#e1bee7',
                 '--text-primary': '#e8f5e9',
                 '--text-secondary': '#c8e6c9',
                 '--text-muted': '#a5d6a7',
                 '--border-primary': '#2a4d3a',
                 '--border-secondary': '#3a5d4a',
-                '--border-gold': '#66bb6a',
+                '--border-gold': '#9c27b0',
                 '--gradient-start': '#0a0a0a',
                 '--gradient-end': '#1e3d2a'
             }

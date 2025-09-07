@@ -41,14 +41,14 @@ test.describe('Theme Customization Working', () => {
         
         await page.waitForTimeout(500);
         
-        // Test dark-blue theme
-        const darkBlueBtn = page.locator('[data-theme="dark-blue"]');
-        await darkBlueBtn.click();
+        // Test sunrise theme
+        const sunriseBtn = page.locator('[data-theme="sunrise"]');
+        await sunriseBtn.click();
         
         await page.waitForTimeout(1000);
         
         // Check that button is marked as active
-        const isActive = await darkBlueBtn.evaluate(el => el.classList.contains('active'));
+        const isActive = await sunriseBtn.evaluate(el => el.classList.contains('active'));
         expect(isActive).toBeTruthy();
         
         // Check that CSS variables are applied
@@ -186,7 +186,7 @@ test.describe('Theme Customization Working', () => {
         await page.waitForTimeout(500);
         
         // Apply a preset theme
-        await page.click('[data-theme="green-dark"]');
+        await page.click('[data-theme="neon"]');
         
         await page.waitForTimeout(1000);
         
