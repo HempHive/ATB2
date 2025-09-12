@@ -2022,7 +2022,30 @@ class ATBDashboard {
         resultsContainer.innerHTML = '';
         
         if (results.length === 0) {
-            resultsContainer.innerHTML = '<p class="no-results">No markets found</p>';
+            const searchTerm = document.getElementById('market-search')?.value.trim();
+            // Allow adding custom market when not found
+            if (searchTerm) {
+                const custom = {
+                    symbol: searchTerm.toUpperCase(),
+                    name: `Custom Market (${searchTerm.toUpperCase()})`,
+                    price: 0,
+                    type: this.getMarketType(searchTerm.toUpperCase())
+                };
+                const addBtn = document.createElement('button');
+                addBtn.className = 'btn btn-primary';
+                addBtn.textContent = `Add ${custom.symbol}`;
+                addBtn.addEventListener('click', () => {
+                    this.selectMarket(custom);
+                    this.addSelectedMarket();
+                });
+                const msg = document.createElement('div');
+                msg.className = 'no-results';
+                msg.textContent = 'No markets found. You can add a custom market:';
+                resultsContainer.appendChild(msg);
+                resultsContainer.appendChild(addBtn);
+            } else {
+                resultsContainer.innerHTML = '<p class="no-results">No markets found</p>';
+            }
             return;
         }
         
@@ -2822,20 +2845,55 @@ class ATBDashboard {
         
         for (let i = dataPoints - 1; i >= 0; i--) {
             const time = new Date(now.getTime() - (i * intervalMs));
-            const variation = (Math.random() - 0.5) * 0.02; // ±1% variation
+            // Deterministic pseudo-random variation based on symbol+timeframe+index
+            const seed = this.hashCode(`${symbol}|${timeframe}|${i}`);
+            const rand = this.prng(seed);
+            const variation = (rand - 0.5) * 0.02; // ±1% variation
             const price = basePrice * (1 + variation);
             
             data.push({
                 time: time.toISOString(),
                 price: price,
-                volume: Math.floor(Math.random() * 1000000),
-                high: price * (1 + Math.random() * 0.01),
-                low: price * (1 - Math.random() * 0.01),
-                open: price * (1 + (Math.random() - 0.5) * 0.005)
+                volume: Math.floor(this.prng(seed + 1) * 1000000),
+                high: price * (1 + this.prng(seed + 2) * 0.01),
+                low: price * (1 - this.prng(seed + 3) * 0.01),
+                open: price * (1 + (this.prng(seed + 4) - 0.5) * 0.005)
             });
         }
         
         return data;
+    }
+
+    // Deterministic cache wrapper for timeframe data
+    getOrGenerateTimeframeData(symbol, timeframe) {
+        const key = symbol;
+        this.timeframeCache[key] = this.timeframeCache[key] || {};
+        if (this.timeframeCache[key][timeframe] && this.timeframeCache[key][timeframe].length) {
+            return this.timeframeCache[key][timeframe];
+        }
+        const data = this.generateDataForTimeframe(symbol, timeframe);
+        this.timeframeCache[key][timeframe] = data;
+        return data;
+    }
+
+    // Simple deterministic hash for strings
+    hashCode(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) {
+            h = ((h << 5) - h) + str.charCodeAt(i);
+            h |= 0; // Convert to 32bit int
+        }
+        return h >>> 0; // unsigned
+    }
+
+    // Pseudo-random number generator (0..1) based on seed
+    prng(seed) {
+        // xorshift32
+        let x = (seed || 1) >>> 0;
+        x ^= x << 13; x >>>= 0;
+        x ^= x >>> 17; x >>>= 0;
+        x ^= x << 5; x >>>= 0;
+        return (x % 100000) / 100000; // 0..1
     }
     
     // PDF generation
@@ -3053,35 +3111,25 @@ class ATBDashboard {
         // Simulate loading delay for better UX
         setTimeout(() => {
             const timeframe = this.currentTimeframe || '1h';
-            const data = this.generateDataForTimeframe(symbol, timeframe);
-            
-            if (data && data.length > 0) {
-                const labels = data.map(d => {
-                    const date = new Date(d.time);
-                    switch(timeframe) {
-                        case '1m': return date.toLocaleTimeString();
-                        case '5m': return date.toLocaleTimeString();
-                        case '15m': return date.toLocaleTimeString();
-                        case '1h': return date.toLocaleTimeString();
-                        case '4h': return date.toLocaleTimeString();
-                        case '1d': return date.toLocaleDateString();
-                        case '1w': return date.toLocaleDateString();
-                        case '1M': return date.toLocaleDateString();
-                        case '3M': return date.toLocaleDateString();
-                        case '6M': return date.toLocaleDateString();
-                        case '1y': return date.toLocaleDateString();
-                        default: return date.toLocaleString();
+            const badge = document.getElementById('data-provenance');
+            fetch(`/api/market-data/${encodeURIComponent(symbol)}/timeframe?timeframe=${encodeURIComponent(timeframe)}`)
+                .then(r => r.ok ? r.json() : Promise.reject())
+                .then(data => {
+                    if (Array.isArray(data) && data.length) {
+                        if (badge) { badge.textContent = 'Live market data'; badge.style.display = 'block'; badge.style.background = 'rgba(0,128,0,0.15)'; badge.style.color = '#aaffaa'; badge.style.borderColor = 'rgba(0,128,0,0.3)'; }
+                        this.applyChartDataForTimeframe(symbol, timeframe, data);
+                        this.prefetchPopularTimeframes(symbol, timeframe);
+                        this.hideChartLoading();
+                        return;
                     }
+                    throw new Error('no data');
+                })
+                .catch(() => {
+                    const data = this.getOrGenerateTimeframeData(symbol, timeframe);
+                    if (badge) { badge.textContent = 'Simulated data'; badge.style.display = 'block'; badge.style.background = 'rgba(255,0,0,0.15)'; badge.style.color = '#ffaaaa'; badge.style.borderColor = 'rgba(255,0,0,0.3)'; }
+                    this.applyChartDataForTimeframe(symbol, timeframe, data);
+                    this.hideChartLoading();
                 });
-                const prices = data.map(d => d.price);
-                
-                this.chart.data.labels = labels;
-                this.chart.data.datasets[0].data = prices;
-                this.chart.data.datasets[0].label = `${symbol} Price (${timeframe})`;
-                this.chart.update('none');
-            }
-            
-            this.hideChartLoading();
         }, 500);
     }
     
@@ -3121,48 +3169,51 @@ class ATBDashboard {
         
         // Normalize symbol to match backend cache keys
         const normalized = symbol.replace('-USD', '').replace('=F', '');
-        // Get market data for the symbol
-        const marketData = this.marketData[symbol] || this.marketData[normalized] || this.generateMockMarketData(symbol);
-        
-        if (marketData && marketData.length > 0) {
-            const labels = marketData.map(d => new Date(d.time).toLocaleTimeString());
-            const prices = marketData.map(d => d.price);
-            
-            this.chart.data.labels = labels;
-            this.chart.data.datasets[0].data = prices;
-            this.chart.data.datasets[0].label = `${symbol} Price`;
-            this.chart.update('none');
-        }
+        const badge = document.getElementById('data-provenance');
+        const timeframe = '1m';
+        // Prefer backend data
+        fetch(`/api/market-data/${encodeURIComponent(symbol)}/timeframe?timeframe=${encodeURIComponent(timeframe)}`)
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => {
+                if (Array.isArray(data) && data.length) {
+                    if (badge) { badge.textContent = 'Live market data'; badge.style.display = 'block'; badge.style.background = 'rgba(0,128,0,0.15)'; badge.style.color = '#aaffaa'; badge.style.borderColor = 'rgba(0,128,0,0.3)'; }
+                    this.applyChartDataForTimeframe(symbol, timeframe, data);
+                    return;
+                }
+                throw new Error('no data');
+            })
+            .catch(() => {
+                const marketData = this.marketData[symbol] || this.marketData[normalized] || this.getOrGenerateTimeframeData(symbol, timeframe);
+                if (badge) { badge.textContent = 'Simulated data'; badge.style.display = 'block'; badge.style.background = 'rgba(255,0,0,0.15)'; badge.style.color = '#ffaaaa'; badge.style.borderColor = 'rgba(255,0,0,0.3)'; }
+                this.applyChartDataForTimeframe(symbol, timeframe, marketData);
+            });
+    }
+
+    applyChartDataForTimeframe(symbol, timeframe, data) {
+        if (!Array.isArray(data) || !data.length) return;
+        const labels = data.map(d => {
+            const date = new Date(d.time);
+            switch(timeframe) {
+                case '1m':
+                case '5m':
+                case '15m':
+                case '1h':
+                case '4h':
+                    return date.toLocaleTimeString();
+                default:
+                    return date.toLocaleDateString();
+            }
+        });
+        const prices = data.map(d => d.price);
+        this.chart.data.labels = labels;
+        this.chart.data.datasets[0].data = prices;
+        this.chart.data.datasets[0].label = `${symbol} Price (${timeframe})`;
+        this.chart.update('none');
     }
     
     generateMockMarketData(symbol) {
-        // Generate mock data for the selected market
-        const basePrices = {
-            'SI=F': 24.50, 'GC=F': 1950.00, 'CL=F': 75.30, 'HG=F': 3.85, 'PL=F': 950.00,
-            'AAPL': 150.00, 'GOOGL': 2800.00, 'MSFT': 300.00, 'TSLA': 200.00, 'AMZN': 3200.00,
-            'BTC-USD': 45000.00, 'ETH-USD': 3000.00
-        };
-        
-        const basePrice = basePrices[symbol] || 100.00;
-        const data = [];
-        const now = new Date();
-        
-        for (let i = 59; i >= 0; i--) {
-            const time = new Date(now.getTime() - (i * 60000)); // 1 minute intervals
-            const variation = (Math.random() - 0.5) * 0.02; // ±1% variation
-            const price = basePrice * (1 + variation);
-            
-            data.push({
-                time: time.toISOString(),
-                price: price,
-                volume: Math.floor(Math.random() * 1000000),
-                high: price * (1 + Math.random() * 0.01),
-                low: price * (1 - Math.random() * 0.01),
-                open: price * (1 + (Math.random() - 0.5) * 0.005)
-            });
-        }
-        
-        return data;
+        // Delegate to timeframe generator with a default intraday timeframe and caching
+        return this.getOrGenerateTimeframeData(symbol, '1m');
     }
     
     createBotForMarket() {

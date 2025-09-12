@@ -1508,6 +1508,20 @@ body {
     overflow: hidden;
 }
 
+.data-badge {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: rgba(255, 0, 0, 0.15);
+    color: #ffaaaa;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+}
+
 .chart-container.zoomed {
     transform-origin: center;
     transition: transform 0.3s ease;
@@ -1521,6 +1535,7 @@ body {
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-primary);
     margin-bottom: var(--spacing-lg);
+    animation: none !important;
 }
 
 .market-list h4 {
@@ -1831,6 +1846,7 @@ body {
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-primary);
     margin-bottom: var(--spacing-lg);
+    animation: none !important;
 }
 
 .market-toggle-grid {
