@@ -76,3 +76,14 @@
 2025-09-03 22:47:25,465 - ATB - INFO - Added bot: AAPL_MA_Bot
 2025-09-03 22:47:25,465 - ATB - INFO - Added bot: GOOGL_RSI_Bot
 2025-09-03 22:47:25,466 - ATB - INFO - Added bot: TSLA_MACD_Bot
+2025-09-13 00:09:08,513 - ATB - INFO - Added bot: AAPL_MA_Bot
+2025-09-13 00:09:08,513 - ATB - INFO - Added bot: GOOGL_RSI_Bot
+2025-09-13 00:09:08,513 - ATB - INFO - Added bot: TSLA_MACD_Bot
+2025-09-13 00:09:08,519 - ATB - INFO - Starting ATB Web Application...
+2025-09-13 00:09:08,560 - werkzeug - INFO -  * Restarting with stat
+2025-09-13 00:09:09,210 - ATB - INFO - Added bot: AAPL_MA_Bot
+2025-09-13 00:09:09,210 - ATB - INFO - Added bot: GOOGL_RSI_Bot
+2025-09-13 00:09:09,210 - ATB - INFO - Added bot: TSLA_MACD_Bot
+2025-09-13 00:09:09,217 - ATB - INFO - Starting ATB Web Application...
+2025-09-13 00:09:09,236 - werkzeug - WARNING -  * Debugger is active!
+2025-09-13 00:09:09,246 - werkzeug - INFO -  * Debugger PIN: 303-433-626
